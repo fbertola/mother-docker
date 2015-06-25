@@ -1,0 +1,1 @@
+[['expose': [80], 'build': '/home/antani', 'name': 'webb'], ['expose': [80], 'build': '/home/antani', 'name': 'webc'], ['expose': [80], 'build': '/home/antani', 'name': 'weba'], ['name': 'haproxy', 'links': ['weba', 'webb', 'webc'], 'volumes': ['/home/antani/haproxy:/haproxy-override'], 'image': 'hypriot/rpi-haproxy', 'expose': ['80', '70'], 'ports': ['80:80', '70:70']]]

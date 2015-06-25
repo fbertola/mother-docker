@@ -1,6 +1,6 @@
 package io.antani.motherdocker
 
-import io.antani.motherdocker.yaml.MotherDockerYamlParser
+import io.antani.motherdocker.yaml.MotherDockingYamlParser
 
 import java.nio.file.FileSystems
 
@@ -11,8 +11,9 @@ class MotherDocker {
     static def load(String filename) {
         def workingDir = FileSystems.default.getPath(filename).parent.normalize().toAbsolutePath()
         def parsedServices = fromDictionary(loadYaml(filename), workingDir, filename)
+        def client = null
 
-        return new MotherDockerProject(parsedServices)
+        return new MotherDockingProject(client, parsedServices)
     }
 
     private static def fromDictionary(dictionary, workingDir, filename) {
@@ -23,7 +24,7 @@ class MotherDocker {
                 throw new RuntimeException("Service '$serviceName' doesn't have any configuration options. All top level keys in your docker-compose.yml must map to a dictionary of configuration options.")
             }
 
-            def loader = new MotherDockerYamlParser(workingDir, filename)
+            def loader = new MotherDockingYamlParser(workingDir, filename)
             serviceDict = loader.makeServiceDictionary(serviceName, serviceDict)
             validatePaths(serviceDict)
 

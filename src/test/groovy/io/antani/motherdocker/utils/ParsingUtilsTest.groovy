@@ -143,8 +143,8 @@ class ParsingUtilsTest extends Specification {
         dict                                                     | workingDir | resolvedDict
         [:]                                                      | '.'        | [:]
         ['a': 'b']                                               | '.'        | ['a': 'b']
-        ['env_file': './src/test/resources/env_vars.properties'] | '.'        | ['environment': ['prop1': 'prop1', 'prop2': 'prop2', 'prop3': 'prop3']]
-        ['environment': ['JAVA_HOME': null]]                     | '.'        | ['environment': ['JAVA_HOME': getenv('JAVA_HOME')]]
+        ['env_file': './src/test/resources/env_vars.properties'] | '.'        | ['environment': ['prop1=prop1', 'prop2=prop2', 'prop3=prop3']]
+        ['environment': ['JAVA_HOME': null]]                     | '.'        | ['environment': ["JAVA_HOME=${getenv('JAVA_HOME')}"]]
     }
 
     @Requires({ new File('./src/test/resources/env_vars.properties').exists() })
@@ -241,7 +241,7 @@ class ParsingUtilsTest extends Specification {
     }
 
     def 'PathMappingsFromDict - should correctly create a path mapping from dict'() {
-        expect: 'merged labels'
+        expect: 'correctly parserd path mappings'
         pathMappingsFromDict(dict) == pathMappings
 
         where:

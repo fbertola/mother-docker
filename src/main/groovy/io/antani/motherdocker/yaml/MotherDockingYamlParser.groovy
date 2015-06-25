@@ -6,13 +6,13 @@ import java.nio.file.FileSystems
 
 import static io.antani.motherdocker.utils.ParsingUtils.*
 
-class MotherDockerYamlParser {
+class MotherDockingYamlParser {
 
     protected workingDir = null
     protected fileName = null
     protected alreadySeen = []
 
-    MotherDockerYamlParser(workingDir, fileName, alreadySeen = []) {
+    MotherDockingYamlParser(workingDir, fileName, alreadySeen = []) {
         this.workingDir = workingDir
         this.fileName = fileName
         this.alreadySeen = alreadySeen
@@ -40,7 +40,7 @@ class MotherDockerYamlParser {
         def otherConfigPath = resolvePath(workingDir as String, extendsOptions['file'] as String)
         def otherWorkingDir = getPathParent(otherConfigPath)
         def otherAlreadySeen = alreadySeen + [signature(serviceDictionary['name'])]
-        def otherLoader = new MotherDockerYamlParser(otherWorkingDir, otherConfigPath, otherAlreadySeen)
+        def otherLoader = new MotherDockingYamlParser(otherWorkingDir, otherConfigPath, otherAlreadySeen)
         def otherConfig = loadYaml(otherConfigPath)
         def otherServiceDict = otherConfig[extendsOptions['service'] as String]
         otherServiceDict = otherLoader.makeServiceDictionary(serviceDictionary['name'], otherServiceDict)

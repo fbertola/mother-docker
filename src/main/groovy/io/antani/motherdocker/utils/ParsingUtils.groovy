@@ -239,10 +239,10 @@ class ParsingUtils {
         }
 
         env << parseLabels(serviceDictionary['environment'])
-        env = env.inject([:]) { map, e ->
+        env = env.inject([]) { list, e ->
             def (k, v) = resolveEnvVar(e.key as String, e.value as String)
-            map[k as String] = v
-            return map
+            list << "${k}=${v}"
+            return list
         }
 
         serviceDictionary['environment'] = env
