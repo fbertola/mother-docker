@@ -1,10 +1,10 @@
-package io.antani.motherdocker.yaml
+package org.github.fbertola.motherdocker.yaml
 
-import io.antani.motherdocker.exceptions.ParserException
+import org.github.fbertola.motherdocker.exceptions.ParserException
 
 import java.nio.file.FileSystems
 
-import static io.antani.motherdocker.utils.ParsingUtils.*
+import static org.github.fbertola.motherdocker.utils.ParsingUtils.*
 
 class MotherDockingYamlParser {
 
@@ -43,8 +43,12 @@ class MotherDockingYamlParser {
         def otherLoader = new MotherDockingYamlParser(otherWorkingDir, otherConfigPath, otherAlreadySeen)
         def otherConfig = loadYaml(otherConfigPath)
         def otherServiceDict = otherConfig[extendsOptions['service'] as String]
-        otherServiceDict = otherLoader.makeServiceDictionary(serviceDictionary['name'], otherServiceDict)
 
+        if (!otherServiceDict) {
+            throw new ParserException("File ${otherConfigPath} does not contains '${extendsOptions['service']}' service")
+        }
+
+        otherServiceDict = otherLoader.makeServiceDictionary(serviceDictionary['name'], otherServiceDict)
         validateExtendedServiceDict(otherServiceDict, otherConfigPath, extendsOptions['service'])
 
         return mergeServiceDictionaries(otherServiceDict, serviceDictionary)

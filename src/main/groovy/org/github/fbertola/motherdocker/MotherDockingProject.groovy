@@ -1,9 +1,9 @@
-package io.antani.motherdocker
+package org.github.fbertola.motherdocker
 
 import com.spotify.docker.client.DockerClient
-import io.antani.motherdocker.exceptions.ProjectException
+import org.github.fbertola.motherdocker.exceptions.ProjectException
 
-import static io.antani.motherdocker.utils.ParsingUtils.getServiceNameFromNet
+import static org.github.fbertola.motherdocker.utils.ParsingUtils.getServiceNameFromNet
 
 class MotherDockingProject {
 

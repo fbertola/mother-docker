@@ -1,11 +1,11 @@
-package io.antani.motherdocker.utils
+package org.github.fbertola.motherdocker.utils
 
-import io.antani.motherdocker.exceptions.ParserException
-import spock.lang.Requires
+import org.github.fbertola.motherdocker.exceptions.ParserException
+import spock.lang.IgnoreIf
 import spock.lang.Specification
 
-import static io.antani.motherdocker.utils.ParsingUtils.*
 import static java.lang.System.getenv
+import static org.github.fbertola.motherdocker.utils.ParsingUtils.*
 
 class ParsingUtilsTest extends Specification {
 
@@ -134,7 +134,7 @@ class ParsingUtilsTest extends Specification {
         ]
     }
 
-    @Requires({ new File('./src/test/resources/env_vars.properties').exists() && getenv('JAVA_HOME') })
+    @IgnoreIf({ new File('./src/test/resources/env_vars.properties').exists() && getenv('JAVA_HOME') })
     def 'ResolveEnvironment - should correctly resolve environment'() {
         expect: 'a correctly resolved environment section'
         resolveEnvironment(dict, workingDir) == resolvedDict
@@ -147,7 +147,7 @@ class ParsingUtilsTest extends Specification {
         ['environment': ['JAVA_HOME': null]]                     | '.'        | ['environment': ["JAVA_HOME=${getenv('JAVA_HOME')}"]]
     }
 
-    @Requires({ new File('./src/test/resources/env_vars.properties').exists() })
+    @IgnoreIf({ new File('./src/test/resources/env_vars.properties').exists() })
     def 'EnvVarsFromFile - should correctly load env vars from file'() {
         setup:
         def fileName = './src/test/resources/env_vars.properties'
@@ -163,7 +163,7 @@ class ParsingUtilsTest extends Specification {
         ]
     }
 
-    @Requires({ !(new File('./src/test/resources/env_vars.unknown').exists()) })
+    @IgnoreIf({ !(new File('./src/test/resources/env_vars.unknown').exists()) })
     def 'EnvVarsFromFile - should fail if file does not exists'() {
         setup:
         def fileName = './src/test/resources/env_vars.unknown'
@@ -324,7 +324,7 @@ class ParsingUtilsTest extends Specification {
         'antani,1234' | ['antani,1234', null]
     }
 
-    @Requires({ getenv('JAVA_HOME') && !getenv('ANTANI_HOME') })
+    @IgnoreIf({ getenv('JAVA_HOME') && !getenv('ANTANI_HOME') })
     def 'ResolveEnvVar - should resolve environment variables'() {
         expect: 'expanded vars'
         resolveEnvVar(key, val) == expandedVars

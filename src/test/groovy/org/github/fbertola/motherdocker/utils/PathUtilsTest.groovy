@@ -1,10 +1,10 @@
-package io.antani.motherdocker.utils
+package org.github.fbertola.motherdocker.utils
 
 import spock.lang.Requires
 import spock.lang.Specification
 
-import static io.antani.motherdocker.utils.PathUtils.expandUser
-import static io.antani.motherdocker.utils.PathUtils.expandVars
+import static PathUtils.expandUser
+import static PathUtils.expandVars
 import static java.lang.System.getenv
 
 class PathUtilsTest extends Specification {

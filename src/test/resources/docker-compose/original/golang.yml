@@ -1,0 +1,2 @@
+ubuntuService:
+  image: google/golang

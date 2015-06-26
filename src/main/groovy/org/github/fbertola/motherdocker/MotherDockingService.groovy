@@ -1,10 +1,10 @@
-package io.antani.motherdocker
+package org.github.fbertola.motherdocker
 
 import com.spotify.docker.client.DockerClient
 import com.spotify.docker.client.messages.ContainerConfig
 import com.spotify.docker.client.messages.HostConfig
 import com.spotify.docker.client.messages.PortBinding
-import io.antani.motherdocker.exceptions.ServiceException
+import org.github.fbertola.motherdocker.exceptions.ServiceException
 
 import java.nio.file.FileSystems
 
@@ -79,7 +79,11 @@ class MotherDockingService {
         try {
             return client.inspectImage(imageName)
         } catch (Exception ex) {
-            throw new ServiceException("No such image: $imageName", ex)
+            if (ex.message.startsWith('Image not found')) {
+                return null;
+            }
+
+            throw new ServiceException(ex)
         }
     }
 

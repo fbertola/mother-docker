@@ -1,17 +1,17 @@
-package io.antani.motherdocker
+package org.github.fbertola.motherdocker
 
-import io.antani.motherdocker.yaml.MotherDockingYamlParser
+import com.spotify.docker.client.DockerClient
+import org.github.fbertola.motherdocker.yaml.MotherDockingYamlParser
 
 import java.nio.file.FileSystems
 
-import static io.antani.motherdocker.utils.ParsingUtils.loadYaml
+import static org.github.fbertola.motherdocker.utils.ParsingUtils.loadYaml
 
 class MotherDocker {
 
-    static def load(String filename) {
+    static def buildProjectFromFile(String filename, DockerClient client) {
         def workingDir = FileSystems.default.getPath(filename).parent.normalize().toAbsolutePath()
         def parsedServices = fromDictionary(loadYaml(filename), workingDir, filename)
-        def client = null
 
         return new MotherDockingProject(client, parsedServices)
     }

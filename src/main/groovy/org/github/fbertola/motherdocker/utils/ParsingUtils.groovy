@@ -1,12 +1,12 @@
-package io.antani.motherdocker.utils
+package org.github.fbertola.motherdocker.utils
 
-import io.antani.motherdocker.exceptions.ParserException
+import org.github.fbertola.motherdocker.exceptions.ParserException
 import org.yaml.snakeyaml.Yaml
 
 import java.nio.file.FileSystems
 
-import static io.antani.motherdocker.utils.PathUtils.expandUser
-import static io.antani.motherdocker.utils.PathUtils.expandVars
+import static PathUtils.expandUser
+import static PathUtils.expandVars
 import static java.lang.System.getenv
 import static org.apache.commons.io.FileUtils.readLines
 import static org.apache.commons.lang3.StringUtils.isNotBlank
@@ -75,7 +75,13 @@ class ParsingUtils {
     ]
 
     static def loadYaml(String yamlFile) {
-        return new Yaml().load(new FileReader(new File(yamlFile)))
+        def file = new File(yamlFile)
+
+        if (!file.exists()) {
+            throw new ParserException("Cannot buildProjectFromFile file: ${yamlFile}")
+        }
+
+        return new Yaml().load(new FileReader(file))
     }
 
     static def processContainerOptions(serviceDictionary, workingDir) {

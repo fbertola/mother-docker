@@ -1,4 +1,4 @@
-package io.antani.motherdocker.exceptions
+package org.github.fbertola.motherdocker.exceptions
 
 class ServiceException extends Exception {
 
