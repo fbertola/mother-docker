@@ -1,2 +1,2 @@
 ubuntuService:
-  image: google/golang
+  image: busybox
