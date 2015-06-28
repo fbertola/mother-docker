@@ -1,17 +1,27 @@
 package org.github.fbertola.motherdocker
 
 import com.spotify.docker.client.DockerClient
+import groovy.util.logging.Slf4j
 import org.github.fbertola.motherdocker.yaml.MotherDockingYamlParser
 
 import java.nio.file.FileSystems
 
 import static org.github.fbertola.motherdocker.utils.ParsingUtils.loadYaml
 
+@Slf4j
 class MotherDocker {
 
     static def buildProjectFromFile(String filename, DockerClient client) {
+        log.info('Reading file {}', filename)
+
         def workingDir = FileSystems.default.getPath(filename).parent.normalize().toAbsolutePath()
         def parsedServices = fromDictionary(loadYaml(filename), workingDir, filename)
+
+        log.info('Initializing a new project with options: {}',
+                [
+                        'workingDir': workingDir,
+                        'services': parsedServices.collect { it['name'] }
+                ])
 
         return new MotherDockingProject(client, parsedServices)
     }

@@ -1,10 +1,12 @@
 package org.github.fbertola.motherdocker
 
 import com.spotify.docker.client.DockerClient
+import groovy.util.logging.Slf4j
 import org.github.fbertola.motherdocker.exceptions.ProjectException
 
 import static org.github.fbertola.motherdocker.utils.ParsingUtils.getServiceNameFromNet
 
+@Slf4j
 class MotherDockingProject {
 
     def services = []
@@ -22,14 +24,16 @@ class MotherDockingProject {
 
             services << new MotherDockingService(name, client, parsedService)
         }
+
+        log.info('Image plan: {}', services.collect { it['name'] })
     }
 
     def start() {
-        services.each { service -> service.start() }
+        services.each { MotherDockingService s -> s.start() }
     }
 
     def stop() {
-        services.reverse().each { MotherDockingService service -> service.stop() }
+        services.reverse().each { MotherDockingService s -> s.stop() }
     }
 
     private def analyzeLinks(parsedService) {
@@ -103,6 +107,7 @@ class MotherDockingProject {
                 if (name in getServiceNames(n['links'] ?: [])) {
                     throw new RuntimeException("A service cannot link to itself: ${name}")
                 }
+
                 if (name in n['volumesFrom'] ?: []) {
                     throw new RuntimeException("A service can not mount itself as volume: ${name}")
                 }
