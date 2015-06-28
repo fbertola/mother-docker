@@ -1,15 +1,18 @@
 package org.github.fbertola.motherdocker
 
 import com.spotify.docker.client.DockerClient
+import com.spotify.docker.client.ImageNotFoundException
 import com.spotify.docker.client.messages.ContainerConfig
 import com.spotify.docker.client.messages.HostConfig
 import com.spotify.docker.client.messages.PortBinding
+import groovy.util.logging.Slf4j
 import org.github.fbertola.motherdocker.exceptions.ServiceException
 
 import java.nio.file.FileSystems
 
 import static com.spotify.docker.client.DockerClient.BuildParameter.QUIET
 
+@Slf4j
 class MotherDockingService {
 
     private static final Integer SECONDS_BEFORE_KILLING = 5
@@ -42,18 +45,50 @@ class MotherDockingService {
     }
 
     def start() {
+        log.info('Starting service \'{}\'', name)
+
         ensureImageExists()
 
-        def createdContainer = client.createContainer(getContainerConfig())
+        createAndRunContainerForImage()
 
-        containerId = createdContainer.id()
+        // TODO: wait for something
 
-        client.startContainer(containerId)
+        log.info('Done! Service \'{}\' successfully started', name)
     }
 
     def stop() {
-        client.stopContainer(containerId, SECONDS_BEFORE_KILLING)
-        client.removeContainer(containerId, true)
+        log.info('Stopping service \'{}\'', name)
+
+        stopAndRemoveContainer()
+
+        log.info('Done! Service \'{}\' successfully stopped', name)
+    }
+
+    private void stopAndRemoveContainer() {
+        try {
+            log.info('Stopping container {}', containerId)
+            client.stopContainer(containerId, SECONDS_BEFORE_KILLING)
+
+            log.info('Removing container {}', containerId)
+            client.removeContainer(containerId, true)
+        } catch (Exception ex) {
+            throw new ServiceException(ex)
+        }
+    }
+
+    private void createAndRunContainerForImage() {
+        try {
+            log.info('Creating container for service \'{}\'', name)
+            def createdContainer = client.createContainer(getContainerConfig())
+
+            containerId = createdContainer.id()
+            log.info('Container created: {}', containerId)
+
+            log.info('Starting container {}', containerId)
+            client.startContainer(containerId)
+        } catch (Exception ex) {
+            throw new ServiceException(ex)
+        }
     }
 
     private void ensureImageExists() {
@@ -63,14 +98,39 @@ class MotherDockingService {
 
         def imageName = imageName()
 
-        if (canBeBuilt()) {
-            def path = FileSystems.default.getPath(options['build'] as String)
-            def imageId = client.build(path, imageName, QUIET)
+        log.info('Image \'{}\' does not exists in the local repository', imageName)
 
-            client.push(imageId)
+        if (canBeBuilt()) {
+            buildImage(imageName)
         } else {
-            client.pull(imageName)
+            pullImage(imageName)
         }
+
+        log.info('Done')
+    }
+
+    private void pullImage(String imageName) {
+        try {
+            log.info('Pulling image \'{}\'', imageName)
+            client.pull(imageName)
+        } catch (Exception ex) {
+            throw new ServiceException(ex)
+        }
+    }
+
+    private void buildImage(String imageName) {
+        def buildPath = options['build'] as String
+
+        // FIXME: see better how images are created
+        //if (!buildPath.endsWith())
+
+        def path = FileSystems.default.getPath(buildPath)
+
+        log.info('Building image \'{}\'', imageName)
+        def imageId = client.build(path, imageName, QUIET)
+
+        log.info('Pushing image \'{}\'', imageName)
+        client.push(imageId)
     }
 
     private def inspectImage() {
@@ -78,11 +138,9 @@ class MotherDockingService {
 
         try {
             return client.inspectImage(imageName)
+        } catch (ImageNotFoundException ignored) {
+            return null
         } catch (Exception ex) {
-            if (ex.message.startsWith('Image not found')) {
-                return null;
-            }
-
             throw new ServiceException(ex)
         }
     }
@@ -139,7 +197,7 @@ class MotherDockingService {
 
         (options['ports'] ?: []).each { String port ->
             if (port.contains(':')) {
-                def (host, container) = port.split(':', 1)
+                def (host, container) = port.split(':')
                 bindings[container] = [PortBinding.of('0.0.0.0', host as String)]
             } else {
                 bindings[port] = [PortBinding.of('0.0.0.0', port)]
