@@ -11,16 +11,28 @@ import org.github.fbertola.motherdocker.exceptions.ServiceException
 import java.nio.file.FileSystems
 
 import static com.spotify.docker.client.DockerClient.BuildParameter.QUIET
+import static com.spotify.docker.client.DockerClient.ExecParameter.STDERR
+import static com.spotify.docker.client.DockerClient.ExecParameter.STDOUT
+import static com.spotify.docker.client.DockerClient.ExecStartParameter.DETACH
+import static com.spotify.docker.client.DockerClient.LogsParameter.FOLLOW
+import static com.spotify.docker.client.DockerClient.LogsParameter.TIMESTAMPS
+import static java.util.concurrent.TimeUnit.MILLISECONDS
+import static org.github.fbertola.motherdocker.utils.DockerUtils.waitForExecFuture
+import static org.github.fbertola.motherdocker.utils.DockerUtils.waitForLogMessageFuture
 
 @Slf4j
 class MotherDockingService {
 
-    private static final Integer SECONDS_BEFORE_KILLING = 5
+    private static final Long SECONDS_BEFORE_KILLING = 5
+    private static final Long RETRYING_PAUSE_TIME = 1000
+    private static final Long MAX_WAIT_TIME = 5000
 
     private String name = ''
     private String containerId = ''
     private DockerClient client = null
     private Map<String, Object> options = [:]
+
+    private Map<String, Object> systemOptions = [:]
 
     MotherDockingService(name, client, options) {
         if (!isValidIdentifier(name)) {
@@ -38,6 +50,10 @@ class MotherDockingService {
         this.name = name
         this.client = client
         this.options = options
+
+        systemOptions['killTime'] = System.getProperty('motherdocker.container.kill.time') ?: SECONDS_BEFORE_KILLING
+        systemOptions['retryAfter'] = System.getProperty('motherdocker.exec.retry.pause') ?: RETRYING_PAUSE_TIME
+        systemOptions['maxWaitTime'] = System.getProperty('motherdocker.wait.max') ?: MAX_WAIT_TIME
     }
 
     def getName() {
@@ -49,9 +65,9 @@ class MotherDockingService {
 
         ensureImageExists()
 
-        createAndRunContainerForImage()
+        createAndRunContainer()
 
-        // TODO: wait for something
+        executeWaitStrategies()
 
         log.info('Done! Service \'{}\' successfully started', name)
     }
@@ -64,10 +80,65 @@ class MotherDockingService {
         log.info('Done! Service \'{}\' successfully stopped', name)
     }
 
+    private def executeWaitStrategies() {
+        if ('wait' in options) {
+            def waitOptions = options['wait']
+            def waitTime = waitOptions['time'] as Long
+            def messageLog = waitOptions['log_message'] as String
+            def exec = waitOptions['exec'] as String[]
+
+            if (exec) {
+                log.info('Waiting for \'{}\' command to successfully terminate', exec)
+                return executeExecWaitStrategy(exec, waitTime)
+            }
+
+            if (messageLog) {
+                log.info('Waiting for \'{}\' to show up in the logs', messageLog)
+                return executeMessageLogWaitStrategy(messageLog, waitTime)
+            }
+
+            log.info('Waiting for {} milliseconds', waitTime)
+            return executeTimeWaitStrategy(waitTime)
+        }
+    }
+
+    private def executeExecWaitStrategy(String[] exec, Long waitTime = null) {
+        try {
+            def retryAfter = systemOptions['retryAfter'] as Long
+            def maxWaitTime = systemOptions['maxWaitTime'] as Long
+            def execId = client.execCreate(containerId, exec, STDOUT, STDERR)
+
+            client.execStart(execId, DETACH)
+
+            waitForExecFuture(client, execId, retryAfter, MILLISECONDS).get(waitTime ?: maxWaitTime, MILLISECONDS)
+        } catch (Exception ignored) {
+            throw new ServiceException('The process is taking too much time, waiting aborted!')
+        }
+    }
+
+    private def executeMessageLogWaitStrategy(message, waitTime = null) {
+        try {
+            def maxWaitTime = systemOptions['maxWaitTime'] as Long
+            def logStream = client.logs(containerId, TIMESTAMPS, DockerClient.LogsParameter.STDOUT, FOLLOW)
+
+            waitForLogMessageFuture(logStream, message).get(waitTime ?: maxWaitTime, MILLISECONDS)
+        } catch (Exception ignored) {
+            throw new ServiceException('The process is taking too much time, waiting aborted!')
+        }
+    }
+
+    private static def executeTimeWaitStrategy(waitTime) {
+        try {
+            Thread.sleep(waitTime as Long)
+        } catch (Exception ex) {
+            throw new ServiceException(ex)
+        }
+    }
+
     private void stopAndRemoveContainer() {
         try {
             log.info('Stopping container {}', containerId)
-            client.stopContainer(containerId, SECONDS_BEFORE_KILLING)
+            client.stopContainer(containerId, systemOptions['killTime'] as Integer)
 
             log.info('Removing container {}', containerId)
             client.removeContainer(containerId, true)
@@ -76,7 +147,7 @@ class MotherDockingService {
         }
     }
 
-    private void createAndRunContainerForImage() {
+    private void createAndRunContainer() {
         try {
             log.info('Creating container for service \'{}\'', name)
             def createdContainer = client.createContainer(getContainerConfig())

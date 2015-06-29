@@ -1,16 +1,41 @@
 package org.github.fbertola.motherdocker.utils
 
+import com.github.rholder.retry.RetryerBuilder
+import com.google.common.base.Predicate
+import com.spotify.docker.client.DockerClient
 import com.spotify.docker.client.LogMessage
 import com.spotify.docker.client.LogStream
 import groovy.util.logging.Slf4j
 
+import java.util.concurrent.TimeUnit
+
+import static com.github.rholder.retry.BlockStrategies.threadSleepStrategy
+import static com.github.rholder.retry.StopStrategies.neverStop
+import static com.github.rholder.retry.WaitStrategies.fixedWait
 import static java.util.concurrent.CompletableFuture.supplyAsync
-import static java.util.concurrent.TimeUnit.MINUTES
+import static java.util.concurrent.TimeUnit.SECONDS
 
 @Slf4j
 class DockerUtils {
 
-    public static def waitForLogMessage(LogStream logStream, message, waitTime = 1, timeUnit = MINUTES) {
+    public static
+    def waitForExecFuture(DockerClient client, String execId, Long pauseBetweenRetries = 5, TimeUnit timeUnit = SECONDS) {
+        def retryer = RetryerBuilder.newBuilder()
+                .retryIfResult({ !it } as Predicate)
+                .withBlockStrategy(threadSleepStrategy())
+                .withWaitStrategy(fixedWait(pauseBetweenRetries, timeUnit))
+                .withStopStrategy(neverStop())
+                .build()
+
+        return supplyAsync {
+            retryer.call {
+                def execStatus = client.execInspect(execId)
+                return (!execStatus.running() && execStatus.exitCode() == 0)
+            }
+        }
+    }
+
+    public static def waitForLogMessageFuture(LogStream logStream, message) {
         return supplyAsync {
             def messageFound = false
 

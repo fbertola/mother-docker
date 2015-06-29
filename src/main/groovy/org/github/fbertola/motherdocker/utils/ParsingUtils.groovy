@@ -28,27 +28,30 @@ class ParsingUtils {
             'entrypoint',
             'env_file',
             'environment',
+            'exec',
             'extra_hosts',
             'read_only',
             'hostname',
             'image',
             'labels',
             'links',
+            'log_driver',
+            'log_message',
             'mac_address',
             'mem_limit',
             'net',
-            'log_driver',
             'pid',
             'ports',
             'privileged',
             'restart',
             'security_opt',
             'stdin_open',
+            'time',
             'tty',
             'user',
             'volumes',
             'volumesFrom',
-            'working_dir',
+            'working_dir'
     ]
 
     public static final def ALLOWED_KEYS = DOCKER_CONFIG_KEYS + [
@@ -57,6 +60,7 @@ class ParsingUtils {
             'expose',
             'externalLinks',
             'name',
+            'wait'
     ]
 
     public static final def DOCKER_CONFIG_HINTS = [
@@ -111,12 +115,48 @@ class ParsingUtils {
             serviceDictionary['labels'] = parseLabels(serviceDictionary['labels'])
         }
 
+        if ('wait' in serviceDictionary) {
+            serviceDictionary['wait'] = validateWaitStrategies(serviceDictionary['wait'])
+        }
+
         return serviceDictionary
+    }
+
+    static def validateWaitStrategies(dict) {
+        def waitStrategies = ['exec', 'log_message', 'time']
+
+        if (!dict) {
+            throw new ParserException('No waiting strategies provided')
+        }
+
+        def d = dict.clone()
+
+        d.each { k, v ->
+            if (!(k in waitStrategies)) {
+                throw new ParserException("Unsupported waiting strategies '${k}'. Available ones: ${waitStrategies}")
+            }
+        }
+
+        if ('exec' in d && 'log_message' in d) {
+            throw new ParserException('\'exec\' and \'log_message\' options cannot be mixed together')
+        }
+
+        def time = d['time']
+
+        if (time && (time as Long) <= 0) {
+            throw new ParserException("Wait time of ${time} is not valid")
+        }
+
+        if ('exec' in d && !(d instanceof Collection)) {
+            d['exec'] = [d['exec']]
+        }
+
+        return d
     }
 
     static def resolveBuildPath(buildPath, workingDir) {
         if (workingDir == null) {
-            throw new ParserException('No workingDir passed to resolveBuildPath')
+            throw new ParserException('No workingDir passed to resolveBuildPath()')
         }
 
         return resolvePath(workingDir as String, buildPath as String)
@@ -136,6 +176,7 @@ class ParsingUtils {
         if (hostPath != null) {
             hostPath = expandUser(hostPath as String)
             hostPath = expandVars(hostPath as String)
+
             return "${resolvePath(workingDir as String, hostPath as String)}:$containerPath"
         } else {
             return containerPath

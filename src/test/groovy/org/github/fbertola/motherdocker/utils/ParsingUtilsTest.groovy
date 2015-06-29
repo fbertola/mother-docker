@@ -15,10 +15,12 @@ class ParsingUtilsTest extends Specification {
         def volumes = ['container', './host:container', '~/host:container']
         def build = ['file.txt', './dir/file.txt', '~/dir/file.txt']
         def labels = ['a=b', 'c=d']
+        def wait = ['time': 123, 'log_message': 'message']
         def dict = [
                 'volumes': volumes,
                 'build'  : build,
-                'labels' : labels
+                'labels' : labels,
+                'wait'   : wait
         ]
 
         when: 'trying to process container options'
@@ -28,6 +30,7 @@ class ParsingUtilsTest extends Specification {
         resolveHostPaths(volumes, workingDir) == (result['volumes'] as Collection)
         resolveBuildPath(build, workingDir) == result['build']
         parseLabels(labels) == result['labels']
+        validateWaitStrategies(wait) == result['wait']
     }
 
     def 'ProcessContainerOptions - should throw an exception if an invalid key is found'() {
@@ -36,6 +39,25 @@ class ParsingUtilsTest extends Specification {
 
         then: 'an exception is thrown'
         thrown(ParserException.class)
+    }
+
+
+    def 'ValidateWaitStrategies - should throw an exception if an invalid wait option is found'() {
+        when: 'trying to process unknown option(s)'
+        validateWaitStrategies(waitOptions)
+
+        then: 'an exception is thrown'
+        thrown(ParserException.class)
+
+        where:
+        waitOptions << [
+                null,
+                [],
+                ['a': 1],
+                ['time': 0],
+                ['a': 1, 'time': 123],
+                ['log_message': 'message', 'exec': 'command']
+        ]
     }
 
     def 'ResolveBuildPath - should throw an exception if no working dir is passed'() {
@@ -134,7 +156,7 @@ class ParsingUtilsTest extends Specification {
         ]
     }
 
-    @IgnoreIf({ new File('./src/test/resources/env_vars.properties').exists() && getenv('JAVA_HOME') })
+    @IgnoreIf({ !(new File('./src/test/resources/env_vars.properties').exists()) || !getenv('JAVA_HOME') })
     def 'ResolveEnvironment - should correctly resolve environment'() {
         expect: 'a correctly resolved environment section'
         resolveEnvironment(dict, workingDir) == resolvedDict
@@ -147,7 +169,7 @@ class ParsingUtilsTest extends Specification {
         ['environment': ['JAVA_HOME': null]]                     | '.'        | ['environment': ["JAVA_HOME=${getenv('JAVA_HOME')}"]]
     }
 
-    @IgnoreIf({ new File('./src/test/resources/env_vars.properties').exists() })
+    @IgnoreIf({ !(new File('./src/test/resources/env_vars.properties').exists()) })
     def 'EnvVarsFromFile - should correctly load env vars from file'() {
         setup:
         def fileName = './src/test/resources/env_vars.properties'
@@ -163,7 +185,7 @@ class ParsingUtilsTest extends Specification {
         ]
     }
 
-    @IgnoreIf({ !(new File('./src/test/resources/env_vars.unknown').exists()) })
+    @IgnoreIf({ new File('./src/test/resources/env_vars.unknown').exists() })
     def 'EnvVarsFromFile - should fail if file does not exists'() {
         setup:
         def fileName = './src/test/resources/env_vars.unknown'
@@ -324,7 +346,7 @@ class ParsingUtilsTest extends Specification {
         'antani,1234' | ['antani,1234', null]
     }
 
-    @IgnoreIf({ getenv('JAVA_HOME') && !getenv('ANTANI_HOME') })
+    @IgnoreIf({ !getenv('JAVA_HOME') || getenv('ANTANI_HOME') })
     def 'ResolveEnvVar - should resolve environment variables'() {
         expect: 'expanded vars'
         resolveEnvVar(key, val) == expandedVars
