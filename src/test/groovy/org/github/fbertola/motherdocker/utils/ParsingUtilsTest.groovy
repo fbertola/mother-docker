@@ -54,7 +54,7 @@ class ParsingUtilsTest extends Specification {
         where:
         waitOptions << [
                 null,
-                [],
+                [:],
                 ['a': 1],
                 ['time': 0],
                 ['a': 1, 'time': 123],
