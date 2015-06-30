@@ -86,7 +86,7 @@ dependencies {
     compile 'org.yaml:snakeyaml:1.15'
     compile 'commons-io:commons-io:2.4'
     compile 'org.slf4j:slf4j-simple:1.7.12'
-    compile 'com.spotify:docker-client:3.0.1-SNAPSHOT'
+    compile 'com.spotify:docker-client:3.0.0'
     compile 'org.apache.commons:commons-lang3:3.4'
     compile 'org.codehaus.groovy:groovy-all:2.3.11'
     compile "com.github.rholder:guava-retrying:1.0.7"
