@@ -35,7 +35,7 @@ class DockerUtils {
         }
     }
 
-    public static def waitForLogMessageFuture(LogStream logStream, message) {
+    public static def waitForLogMessageFuture(LogStream logStream, String message) {
         return supplyAsync {
             def messageFound = false
 

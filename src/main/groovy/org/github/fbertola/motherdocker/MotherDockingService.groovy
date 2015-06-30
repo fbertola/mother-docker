@@ -7,6 +7,7 @@ import com.spotify.docker.client.messages.HostConfig
 import com.spotify.docker.client.messages.PortBinding
 import groovy.util.logging.Slf4j
 import org.github.fbertola.motherdocker.exceptions.ServiceException
+import org.github.fbertola.motherdocker.utils.StringUtils
 
 import java.nio.file.FileSystems
 
@@ -14,8 +15,6 @@ import static com.spotify.docker.client.DockerClient.BuildParameter.QUIET
 import static com.spotify.docker.client.DockerClient.ExecParameter.STDERR
 import static com.spotify.docker.client.DockerClient.ExecParameter.STDOUT
 import static com.spotify.docker.client.DockerClient.ExecStartParameter.DETACH
-import static com.spotify.docker.client.DockerClient.LogsParameter.FOLLOW
-import static com.spotify.docker.client.DockerClient.LogsParameter.TIMESTAMPS
 import static java.util.concurrent.TimeUnit.MILLISECONDS
 import static org.github.fbertola.motherdocker.utils.DockerUtils.waitForExecFuture
 import static org.github.fbertola.motherdocker.utils.DockerUtils.waitForLogMessageFuture
@@ -116,10 +115,15 @@ class MotherDockingService {
         }
     }
 
-    private def executeMessageLogWaitStrategy(message, waitTime = null) {
+    private def executeMessageLogWaitStrategy(String message, Long waitTime = null) {
         try {
             def maxWaitTime = systemOptions['maxWaitTime'] as Long
-            def logStream = client.logs(containerId, TIMESTAMPS, DockerClient.LogsParameter.STDOUT, FOLLOW)
+            def logStream = client.logs(
+                    containerId,
+                    // DockerClient.LogsParameter.TIMESTAMPS,
+                    DockerClient.LogsParameter.STDOUT,
+                    DockerClient.LogsParameter.STDERR,
+                    DockerClient.LogsParameter.FOLLOW)
 
             waitForLogMessageFuture(logStream, message).get(waitTime ?: maxWaitTime, MILLISECONDS)
         } catch (Exception ignored) {
@@ -129,7 +133,7 @@ class MotherDockingService {
 
     private static def executeTimeWaitStrategy(waitTime) {
         try {
-            Thread.sleep(waitTime as Long)
+            Thread.sleep(waitTime as Long) // ¯\_(ツ)_/¯
         } catch (Exception ex) {
             throw new ServiceException(ex)
         }
@@ -192,7 +196,7 @@ class MotherDockingService {
     private void buildImage(String imageName) {
         def buildPath = options['build'] as String
 
-        // FIXME: see better how images are created
+        // FIXME: know better how images are created
         //if (!buildPath.endsWith())
 
         def path = FileSystems.default.getPath(buildPath)
@@ -218,13 +222,13 @@ class MotherDockingService {
 
     private def createHostConfig() {
         return HostConfig.builder()
-                .dns((options['dns'] ?: []) as List)
-                .binds((options['binds'] ?: []) as List)
-                .dnsSearch((options['dns_search'] ?: []) as List)
-                .links((options['links'] ?: []) as List)
+                .dns(StringUtils.convertToJavaString(options['dns'] ?: []) as List)
+                .binds(StringUtils.convertToJavaString(options['binds'] ?: []) as List)
+                .dnsSearch(StringUtils.convertToJavaString(options['dns_search'] ?: []) as List)
+                .links(StringUtils.convertToJavaString(options['links'] ?: []) as List)
                 .portBindings(createPortBindings() as Map)
                 .privileged((options['privileged'] ?: false) as Boolean)
-                .volumesFrom((options['volumes_from'] ?: []) as List)
+                .volumesFrom(StringUtils.convertToJavaString(options['volumes_from'] ?: []) as List)
                 .build()
     }
 
@@ -235,17 +239,17 @@ class MotherDockingService {
                 .attachStdin(true)
                 .attachStderr(true)
                 .attachStdout(true)
-                .cmd((options['cmd'] ?: []) as List)
+                .cmd(StringUtils.convertToJavaString(options['cmd'] ?: []) as List)
                 .cpuset(options['cpuset'] as String)
                 .cpuShares((options['cpu_shares'] ?: 0) as Long)
                 .domainname(options['domainname'] as String)
-                .entrypoint((options['entrypoint'] ?: []) as List)
-                .env((options['environment'] ?: []) as List)
-                .exposedPorts((options['expose'] ?: []) as Set)
+                .entrypoint(StringUtils.convertToJavaString(options['entrypoint'] ?: []) as List)
+                .env(StringUtils.convertToJavaString(options['environment'] ?: []) as List)
+                .exposedPorts(StringUtils.convertToJavaString(options['expose'] ?: []) as Set)
                 .hostConfig(hostConfig)
                 .hostname(options['hostname'] as String)
                 .image(imageName())
-                .labels((options['labels'] ?: [:]) as Map)
+                .labels(StringUtils.convertToJavaString(options['labels'] ?: [:]) as Map)
                 .macAddress(options['mac_address'] as String)
                 .memory((options['mem_limit'] ?: 0) as Long)
                 .tty('tty' in options)

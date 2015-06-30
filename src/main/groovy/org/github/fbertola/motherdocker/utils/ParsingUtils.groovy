@@ -116,13 +116,13 @@ class ParsingUtils {
         }
 
         if ('wait' in serviceDictionary) {
-            serviceDictionary['wait'] = validateWaitStrategies(serviceDictionary['wait'])
+            serviceDictionary['wait'] = validateWaitStrategies(serviceDictionary['wait'] as Map)
         }
 
         return serviceDictionary
     }
 
-    static def validateWaitStrategies(dict) {
+    static def validateWaitStrategies(Map dict) {
         def waitStrategies = ['exec', 'log_message', 'time']
 
         if (!dict) {
@@ -143,7 +143,7 @@ class ParsingUtils {
 
         def time = d['time']
 
-        if (time && (time as Long) <= 0) {
+        if (time != null && (time as Long) <= 0) {
             throw new ParserException("Wait time of ${time} is not valid")
         }
 
