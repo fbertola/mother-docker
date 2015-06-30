@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/fbertola/mother-docker.svg)](https://travis-ci.org/fbertola/mother-docker)
 [![GitHub license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/fbertola/mother-docker/blob/master/LICENSE)
 
-This is a simple [Docker](https://github.com/dotcloud/docker) orchestrator written in Groovy.
+A simple [Docker](https://github.com/dotcloud/docker) orchestrator written in Groovy.
 
 ## About
 
@@ -20,4 +20,4 @@ No, _MotherDocker_ it is **not** intended to be a replacement for _Docker Compos
 
 * **Why the name?**
 
-For the _lulz_ :stuck_out_tongue:
+You know, for the _lulz_ :stuck_out_tongue:
