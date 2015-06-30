@@ -12,12 +12,13 @@ env:
 
 before_install:
   - sudo sh -c "wget -qO- https://get.docker.io/gpg | apt-key add -"
-  - sudo sh -c "echo deb http://get.docker.io/ubuntu docker main > /etc/apt/sources.list.d/docker.list"
+  - sudo sh -c "echo deb https://get.docker.com/ubuntu docker main > /etc/apt/sources.list.d/docker.list"
   - echo exit 101 | sudo tee /usr/sbin/policy-rc.d
   - sudo chmod +x /usr/sbin/policy-rc.d
   - sudo mkdir -p /var/lib/docker
 
 install:
+  - sudo apt-get -y install apt-transport-https
   - sudo apt-get update
   - sudo apt-get -y install slirp lxc lxc-docker
   - sudo sudo usermod -aG docker "$USER"
