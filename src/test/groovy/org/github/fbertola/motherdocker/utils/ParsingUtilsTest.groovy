@@ -3,6 +3,7 @@ package org.github.fbertola.motherdocker.utils
 import org.github.fbertola.motherdocker.exceptions.ParserException
 import spock.lang.IgnoreIf
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import static java.lang.System.getenv
 import static org.github.fbertola.motherdocker.utils.ParsingUtils.*
@@ -42,6 +43,7 @@ class ParsingUtilsTest extends Specification {
     }
 
 
+    @Unroll("validateWaitStrategies(#waitOptions) should fail")
     def 'ValidateWaitStrategies - should throw an exception if an invalid wait option is found'() {
         when: 'trying to process unknown option(s)'
         validateWaitStrategies(waitOptions)
@@ -88,6 +90,7 @@ class ParsingUtilsTest extends Specification {
         thrown(ParserException.class)
     }
 
+    @Unroll("resolveHostPath(#volume, #workingDir) should be #resolvedHostPath")
     def 'ResolveHostPath - should correctly resolve host path'() {
         setup:
         def userHome = System.getProperty('user.home')
@@ -106,12 +109,10 @@ class ParsingUtilsTest extends Specification {
         '~/host:container' | '/home/antani' | '/home/antani/host:container'
     }
 
+    @Unroll("mergeServiceDictionaries(#base, #override) should be #mergedDictionary")
     def 'MergeServiceDictionaries - should correctly merge two dictionaries'() {
-        when: 'trying to merge two dictionaries'
-        def result = mergeServiceDictionaries(base, override)
-
-        then: 'the dictionaries are correctly merged'
-        result == mergedDictionary
+        expect: 'the dictionaries are correctly merged'
+        mergeServiceDictionaries(base, override) == mergedDictionary
 
         where:
         base                         | override                    | mergedDictionary
@@ -129,6 +130,7 @@ class ParsingUtilsTest extends Specification {
         ['tty': false]               | ['tty': true]               | ['tty': true]
     }
 
+    @Unroll("processExtendsOptions('name', #options) should be options")
     def 'ProcessExtendsOptions - should correctly process extends options'() {
         expect: 'correctly processed extends options'
         processExtendsOptions('name', options) == options
@@ -140,6 +142,7 @@ class ParsingUtilsTest extends Specification {
         ]
     }
 
+    @Unroll("processExtendsOptions('name', #options) should fail")
     def 'ProcessExtendsOptions - should not process ill-formed extends options'() {
         when: 'trying to process incorrect extends options'
         processExtendsOptions('name', options)
@@ -156,6 +159,7 @@ class ParsingUtilsTest extends Specification {
         ]
     }
 
+    @Unroll("resolveEnvironment(#dict, #workingDir) should be #resolvedDict")
     @IgnoreIf({ !(new File('./src/test/resources/env_vars.properties').exists()) || !getenv('JAVA_HOME') })
     def 'ResolveEnvironment - should correctly resolve environment'() {
         expect: 'a correctly resolved environment section'
@@ -197,6 +201,7 @@ class ParsingUtilsTest extends Specification {
         thrown(ParserException.class)
     }
 
+    @Unroll("getEnvFiles(#options, #workingDir) should be #pats")
     def 'GetEnvFiles - should correctly extract env_file paths'() {
         expect: 'correct env_file path'
         getEnvFiles(options, workingDir) == paths
@@ -218,6 +223,7 @@ class ParsingUtilsTest extends Specification {
         thrown(ParserException.class)
     }
 
+    @Unroll("validateExtendedServiceDict(#dict, 'filename', 'service') should fail")
     def 'ValidateExtendedServiceDict - should throws exceptions for invalid extended service dictionaries'() {
         when: 'trying to validate an invalid extended service dictionaries'
         validateExtendedServiceDict(dict, 'filename', 'service')
@@ -237,6 +243,7 @@ class ParsingUtilsTest extends Specification {
 
     }
 
+    @Unroll("getServiceNameFromNet(#netConfig) should be #name")
     def 'GetServiceNameFromNet - should correctly extract service name'() {
         expect: 'service name'
         getServiceNameFromNet(netConfig) == name
@@ -250,6 +257,7 @@ class ParsingUtilsTest extends Specification {
         'container:abc' | 'abc'
     }
 
+    @Unroll("mergePathMappings(#base, #override) should be #mergedPathMappings")
     def 'MergePathMappings - should merge path mappings'() {
         expect: 'merged path mappings'
         mergePathMappings(base, override) == mergedPathMappings
@@ -262,6 +270,7 @@ class ParsingUtilsTest extends Specification {
         ['1234', 'antani:1234'] | ['test:4321']   | ['antani:1234', 'test:4321']
     }
 
+    @Unroll("pathMappingsFromDict(#dict) should be #pathMappings")
     def 'PathMappingsFromDict - should correctly create a path mapping from dict'() {
         expect: 'correctly parserd path mappings'
         pathMappingsFromDict(dict) == pathMappings
@@ -275,6 +284,7 @@ class ParsingUtilsTest extends Specification {
         ['1234': 'antani', '4321': 'test', '9999': null] | ['antani:1234', 'test:4321', '9999']
     }
 
+    @Unroll("joinPathMapping(#pair) should be #joinedPathMapping")
     def 'JoinPathMapping - should correctly join path mappings'() {
         expect: 'joined path mappings'
         joinPathMapping(pair) == joinedPathMapping
@@ -285,6 +295,7 @@ class ParsingUtilsTest extends Specification {
         ['1234', null]     | '1234'
     }
 
+    @Unroll("dictFromPathMappings(#pathMapping) should be #dict")
     def 'DictFromPathMappings - should correctly create a dict of path mappings'() {
         expect: 'dict of path mappings'
         dictFromPathMappings(pathMapping) == dict
@@ -295,6 +306,7 @@ class ParsingUtilsTest extends Specification {
         ['antani:1234', 'test:4321'] | ['1234': 'antani', '4321': 'test']
     }
 
+    @Unroll("mergeLabels(#base, #override) should be #merged")
     def 'MergeLabels - should correctly merge labels'() {
         expect: 'merged labels'
         mergeLabels(base, override) == merged
@@ -307,6 +319,7 @@ class ParsingUtilsTest extends Specification {
         ['a,b']    | ['c=d', 'e=f'] | ['a,b': '', 'c': 'd', 'e': 'f']
     }
 
+    @Unroll("parseLabels(#labels) should be #parsedLabels")
     def 'ParseLabels - should correctly parse well-formed labels'() {
         expect: 'parsed labels'
         parseLabels(labels) == parsedLabels
@@ -326,6 +339,7 @@ class ParsingUtilsTest extends Specification {
         thrown(ParserException.class)
     }
 
+    @Unroll("splitLabel(#label) should be #splittedLabels")
     def 'SplitLabel - should correctly split labels'() {
         expect: 'splitted labels'
         splitLabel(label) == splittedLabels
@@ -336,6 +350,7 @@ class ParsingUtilsTest extends Specification {
         'a:b' | ['a:b', '']
     }
 
+    @Unroll("splitPathMapping(#string) should be #pathMapping")
     def 'SplitPathMapping - should correctly split path mappings'() {
         expect: 'splitted paths'
         splitPathMapping(string) == pathMapping
@@ -346,6 +361,7 @@ class ParsingUtilsTest extends Specification {
         'antani,1234' | ['antani,1234', null]
     }
 
+    @Unroll("resolveEnvVar(#key, #val) should be #expandedVars")
     @IgnoreIf({ !getenv('JAVA_HOME') || getenv('ANTANI_HOME') })
     def 'ResolveEnvVar - should resolve environment variables'() {
         expect: 'expanded vars'
@@ -358,6 +374,7 @@ class ParsingUtilsTest extends Specification {
         'JAVA_HOME'   | null | ['JAVA_HOME', getenv('JAVA_HOME')]
     }
 
+    @Unroll("resolvePath(#workingDir, #path) should be #resolvedPath")
     def 'ResolvePath - should correctly resolve paths'() {
         expect: 'resolved path'
         resolvePath(workingDir, path) == resolvedPath

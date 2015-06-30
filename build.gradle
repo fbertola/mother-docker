@@ -91,6 +91,7 @@ dependencies {
     compile 'org.codehaus.groovy:groovy-all:2.3.11'
     compile "com.github.rholder:guava-retrying:1.0.7"
 
+    testCompile 'com.impossibl.pgjdbc-ng:pgjdbc-ng:0.5'
     testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
 }
 

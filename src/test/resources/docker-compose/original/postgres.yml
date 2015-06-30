@@ -1,8 +1,16 @@
 postgres:
   image: postgres
 
+  environment:
+    - "POSTGRES_USER=superduperuser"
+    - "POSTGRES_PASSWORD=superdupersecretpassword"
+
   expose:
     - "5432"
 
   ports:
-    - "2345:5432"
+    - "5432:5432"
+
+  wait:
+    time: 20000
+    log_message: "database system is ready to accept connections"
