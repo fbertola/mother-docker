@@ -8,7 +8,7 @@ A simple [Docker](https://github.com/dotcloud/docker) orchestrator written in Gr
 ## About
 
 _MotherDocker_ was created as a tool for easing integration testing with _Docker_ on the _JVM_. It is a partial rewrite in _Groovy_ of [Docker Compose](https://docs.docker.com/compose/) (formely _Fig_).
-Although this library doesn't have (and was not intended to) all the system management options of _Docker Compose_, it can fully understand the **YAML** configuration files.         
+Although this library doesn't have (and was not intended to) all the system management options of _Docker Compose_, it can fully understand its **YAML** configuration files.         
 
 _MotherDocker_ is based on the excellent [Spotify's Docker Client](https://github.com/spotify/docker-client).
 
@@ -18,9 +18,9 @@ _to-do_
 
 ## Docker-Compose extensions
 
-Although _MotherDocker_ supports all the original _Docker-Compose_ YAML options, it adds some new useful extensions:
+_MotherDocker_ adds some new useful extensions to the original _YAML_ syntax:
 
-### Wait Strategies
+#### Wait Strategies
 
 When building a complex multi-container project, it is often useful to have the possibility to **wait** for an image to reach a certain state before proceeding.
 _MotherDocker_ provides three different wait strategies:
