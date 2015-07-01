@@ -25,11 +25,10 @@ install:
   - git clone git://github.com/cptactionhank/sekexe
 
 before_script:
-    #  - "sekexe/run 'mount -t tmpfs -o size=8g tmpfs /var/lib/docker && docker -d &"
-    #  - "while ! docker info &> /dev/null ; do sleep 1; done"
-    #  - docker pull busybox
+  - "sekexe/run 'mount -t tmpfs -o size=8g tmpfs /var/lib/docker && docker -d &"
+  - "while ! docker info &> /dev/null ; do sleep 1; done"
+  - "docker pull busybox"
+  - "docker pull postgres:9.4"
 
 script:
-    #  - docker version
-    #  - docker build -t local/r-base r-base
-    #  - docker run local/r-base r -e 'sapply(installed.packages()[,"Package"], tools::testInstalledPackage)'
+  # - docker version
