@@ -1,5 +1,5 @@
 postgres:
-  image: postgres
+  image: "postgres:9.4"
 
   environment:
     - "POSTGRES_USER=superduperuser"
@@ -9,7 +9,7 @@ postgres:
     - "5432"
 
   ports:
-    - "5432:5432"
+    - "1234:5432"
 
   wait:
     time: 20000

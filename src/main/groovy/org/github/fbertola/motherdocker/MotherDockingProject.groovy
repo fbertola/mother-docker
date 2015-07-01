@@ -9,8 +9,8 @@ import static org.github.fbertola.motherdocker.utils.ParsingUtils.getServiceName
 @Slf4j
 class MotherDockingProject {
 
-    def services = []
     DockerClient client = null
+    List<MotherDockingService> services = []
 
     public MotherDockingProject(client, parsedServices) {
         this.client = client
@@ -29,11 +29,19 @@ class MotherDockingProject {
     }
 
     def start() {
-        services.each { MotherDockingService s -> s.start() }
+        services.each { s -> s.start() }
     }
 
     def stop() {
-        services.reverse().each { MotherDockingService s -> s.stop() }
+        services.reverse().each { s -> s.stop() }
+    }
+
+    def getPortMappings() {
+        services.inject([:]) { map, s ->
+            // FIXME: merge warning
+            map << s.getPortMappings()
+            return map
+        }
     }
 
     private def analyzeLinks(parsedService) {

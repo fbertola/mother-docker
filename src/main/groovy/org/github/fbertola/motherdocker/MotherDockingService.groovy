@@ -7,17 +7,16 @@ import com.spotify.docker.client.messages.HostConfig
 import com.spotify.docker.client.messages.PortBinding
 import groovy.util.logging.Slf4j
 import org.github.fbertola.motherdocker.exceptions.ServiceException
-import org.github.fbertola.motherdocker.utils.StringUtils
 
 import java.nio.file.FileSystems
 
-import static com.spotify.docker.client.DockerClient.BuildParameter.QUIET
+import static com.spotify.docker.client.DockerClient.BuildParameter.FORCE_RM
 import static com.spotify.docker.client.DockerClient.ExecParameter.STDERR
 import static com.spotify.docker.client.DockerClient.ExecParameter.STDOUT
 import static com.spotify.docker.client.DockerClient.ExecStartParameter.DETACH
 import static java.util.concurrent.TimeUnit.MILLISECONDS
-import static org.github.fbertola.motherdocker.utils.DockerUtils.waitForExecFuture
-import static org.github.fbertola.motherdocker.utils.DockerUtils.waitForLogMessageFuture
+import static org.github.fbertola.motherdocker.utils.DockerUtils.*
+import static org.github.fbertola.motherdocker.utils.StringUtils.ensureJavaString
 
 @Slf4j
 class MotherDockingService {
@@ -79,6 +78,21 @@ class MotherDockingService {
         log.info('Done! Service \'{}\' successfully stopped', name)
     }
 
+    def getPortMappings() {
+        log.info('Inspecting container {} for service \'{}\'', containerId, name)
+
+        try {
+            def info = client.inspectContainer(containerId)
+            def portMappings = info.networkSettings().portMapping()
+
+            log.info('Service \'{}\' port mappings: {}', name, portMappings)
+
+            return portMappings
+        } catch (Exception ex) {
+            throw new ServiceException(ex)
+        }
+    }
+
     private def executeWaitStrategies() {
         if ('wait' in options) {
             def waitOptions = options['wait']
@@ -120,7 +134,6 @@ class MotherDockingService {
             def maxWaitTime = systemOptions['maxWaitTime'] as Long
             def logStream = client.logs(
                     containerId,
-                    // DockerClient.LogsParameter.TIMESTAMPS,
                     DockerClient.LogsParameter.STDOUT,
                     DockerClient.LogsParameter.STDERR,
                     DockerClient.LogsParameter.FOLLOW)
@@ -173,39 +186,38 @@ class MotherDockingService {
 
         def imageName = imageName()
 
-        log.info('Image \'{}\' does not exists in the local repository', imageName)
-
         if (canBeBuilt()) {
             buildImage(imageName)
         } else {
             pullImage(imageName)
         }
 
-        log.info('Done')
+        log.info('Done, now image \'{}\' exists')
     }
 
     private void pullImage(String imageName) {
         try {
             log.info('Pulling image \'{}\'', imageName)
-            client.pull(imageName)
+            client.pull(imageName, progressHandler())
         } catch (Exception ex) {
             throw new ServiceException(ex)
         }
     }
 
     private void buildImage(String imageName) {
+        def progressHandler = progressHandler()
         def buildPath = options['build'] as String
-
-        // FIXME: know better how images are created
-        //if (!buildPath.endsWith())
-
         def path = FileSystems.default.getPath(buildPath)
 
-        log.info('Building image \'{}\'', imageName)
-        def imageId = client.build(path, imageName, QUIET)
+        try {
+            log.info('Building image \'{}\'', imageName)
 
-        log.info('Pushing image \'{}\'', imageName)
-        client.push(imageId)
+            def imageId = client.build(path, imageName, progressHandler, FORCE_RM)
+
+            log.info('Image \'{}\' successfully builted: {}', imageName, imageId)
+        } catch (Exception ex) {
+            throw new ServiceException(ex)
+        }
     }
 
     private def inspectImage() {
@@ -221,61 +233,76 @@ class MotherDockingService {
     }
 
     private def createHostConfig() {
-        return HostConfig.builder()
-                .dns(StringUtils.convertToJavaString(options['dns'] ?: []) as List)
-                .binds(StringUtils.convertToJavaString(options['binds'] ?: []) as List)
-                .dnsSearch(StringUtils.convertToJavaString(options['dns_search'] ?: []) as List)
-                .links(StringUtils.convertToJavaString(options['links'] ?: []) as List)
-                .portBindings(createPortBindings() as Map)
-                .privileged((options['privileged'] ?: false) as Boolean)
-                .volumesFrom(StringUtils.convertToJavaString(options['volumes_from'] ?: []) as List)
-                .build()
+        def builder = HostConfig.builder()
+
+        if ('dns' in options)
+            builder.dns(ensureJavaString((options['dns']) as List))
+        if ('binds' in options)
+            builder.binds(ensureJavaString((options['binds']) as List))
+        if ('dns_search' in options)
+            builder.dnsSearch(ensureJavaString((options['dns_search']) as List))
+        if ('links' in options)
+            builder.links(ensureJavaString((options['links']) as List))
+        if ('ports' in options)
+            builder.portBindings(createPortBindings() as Map)
+        if ('volumes_from' in options)
+            builder.volumesFrom(ensureJavaString((options['volumes_from']) as List))
+
+        builder.privileged((options['privileged'] ?: false) as Boolean)
+
+        return builder.build()
     }
 
     private def getContainerConfig() {
-        def hostConfig = createHostConfig()
 
-        def containerConfig = ContainerConfig.builder()
-                .attachStdin(true)
+        def builder = ContainerConfig.builder()
+        if ('command' in options)
+            builder.cmd(ensureJavaString((options['command']) as List))
+        if ('entrypoint' in options)
+            builder.entrypoint(ensureJavaString((options['entrypoint']) as List))
+        if ('environment' in options)
+            builder.env(ensureJavaString((options['environment']) as List))
+        if ('expose' in options)
+            builder.exposedPorts(ensureJavaString((options['expose']) as Set))
+        if ('labels' in options)
+            builder.labels(ensureJavaString((options['labels']) as Map))
+
+        builder.attachStdin(true)
                 .attachStderr(true)
                 .attachStdout(true)
-                .cmd(StringUtils.convertToJavaString(options['cmd'] ?: []) as List)
                 .cpuset(options['cpuset'] as String)
-                .cpuShares((options['cpu_shares'] ?: 0) as Long)
+                .cpuShares(options['cpu_shares'] as Long)
                 .domainname(options['domainname'] as String)
-                .entrypoint(StringUtils.convertToJavaString(options['entrypoint'] ?: []) as List)
-                .env(StringUtils.convertToJavaString(options['environment'] ?: []) as List)
-                .exposedPorts(StringUtils.convertToJavaString(options['expose'] ?: []) as Set)
-                .hostConfig(hostConfig)
+                .hostConfig(createHostConfig())
                 .hostname(options['hostname'] as String)
                 .image(imageName())
-                .labels(StringUtils.convertToJavaString(options['labels'] ?: [:]) as Map)
                 .macAddress(options['mac_address'] as String)
-                .memory((options['mem_limit'] ?: 0) as Long)
+                .memory(options['mem_limit'] as Long)
                 .tty('tty' in options)
+
 
         if ('hostname' in options && !('domainname' in options) && '.' in options['hostname']) {
             def parts = (options['hostname'] as String).split('.')
-            containerConfig.hostname(parts[0])
-            containerConfig.domainname(parts[2])
+            builder.hostname(parts[0]).domainname(parts[2])
         }
 
-        return containerConfig.build()
+        return builder.build()
     }
 
     private def createPortBindings() {
-        if ('ports' in options) {
-            log.warn('Usage of \'ports\' options is discouraged, consider not using it')
-        }
-
         def bindings = [:]
 
         (options['ports'] ?: []).each { String port ->
-            if (port.contains(':')) {
-                def (host, container) = port.split(':')
-                bindings[container] = [PortBinding.of('0.0.0.0', host as String)]
-            } else {
+            if (port.count(':') == 0) {
                 bindings[port] = [PortBinding.of('0.0.0.0', port)]
+            } else if (port.count(':') == 1) {
+                def (String host, String container) = port.split(':')
+                bindings[container] = [PortBinding.of('0.0.0.0', host)]
+            } else if (port.count(':') == 2) {
+                def (String ip, String host, String container) = port.split(':')
+                bindings[container] = [PortBinding.of(ip, host)]
+            } else {
+                throw new ServiceException("Invalid port binding: ${port}")
             }
         }
 
@@ -295,10 +322,11 @@ class MotherDockingService {
     }
 
     private def fullName() {
-        return "MotherDockingBuilt_${name}"
+        return "motherdocker_${name}"
     }
 
     private static def isValidIdentifier(identifier) {
-        return identifier =~ /^[a-zA-Z0-9]+$/
+        return identifier =~ /^[a-z0-9-_.]+$/
     }
+
 }

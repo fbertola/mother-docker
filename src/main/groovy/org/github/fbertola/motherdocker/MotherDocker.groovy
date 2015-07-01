@@ -14,13 +14,17 @@ class MotherDocker {
     static def buildProjectFromFile(String filename, DockerClient client) {
         log.info('Reading file {}', filename)
 
+        if (!(new File(filename)).exists()) {
+            throw new IllegalArgumentException("File '${filename}' does not exists")
+        }
+
         def workingDir = FileSystems.default.getPath(filename).parent.normalize().toAbsolutePath()
         def parsedServices = fromDictionary(loadYaml(filename), workingDir, filename)
 
         log.info('Initializing a new project with options: {}',
                 [
                         'workingDir': workingDir,
-                        'services': parsedServices.collect { it['name'] }
+                        'services'  : parsedServices.collect { it['name'] }
                 ])
 
         return new MotherDockingProject(client, parsedServices)

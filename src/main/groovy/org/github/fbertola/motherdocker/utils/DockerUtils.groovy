@@ -2,9 +2,8 @@ package org.github.fbertola.motherdocker.utils
 
 import com.github.rholder.retry.RetryerBuilder
 import com.google.common.base.Predicate
-import com.spotify.docker.client.DockerClient
-import com.spotify.docker.client.LogMessage
-import com.spotify.docker.client.LogStream
+import com.spotify.docker.client.*
+import com.spotify.docker.client.messages.ProgressMessage
 import groovy.util.logging.Slf4j
 
 import java.util.concurrent.TimeUnit
@@ -48,6 +47,21 @@ class DockerUtils {
         }
     }
 
+    public static ProgressHandler progressHandler() {
+        //if (log.isDebugEnabled()) {
+            return new AnsiProgressHandler(System.err)
+        /*} else {
+            return new ProgressHandler() {
+
+                @Override
+                void progress(ProgressMessage message) throws DockerException {
+                    // NO-OP
+                }
+
+            }
+        }*/
+    }
+
     private static def logContainsMessage(LogMessage logMessage, String message) {
         def content = logMessage.content()
         def buf = new byte[content.capacity()]
@@ -56,6 +70,9 @@ class DockerUtils {
 
         try {
             def messageString = new String(buf, 'utf-8')
+
+            log.debug(messageString)
+
             return messageString.contains(message)
         } catch (final Exception e) {
             log.error('Error while trying to read a log message', e);

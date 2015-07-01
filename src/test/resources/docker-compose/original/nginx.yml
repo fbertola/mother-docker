@@ -1,0 +1,11 @@
+nginx:
+  build: ../../dockerfiles/nginx
+
+  expose:
+    - "80"
+
+  ports:
+    - "1234:80"
+
+  wait:
+    time: 2000
