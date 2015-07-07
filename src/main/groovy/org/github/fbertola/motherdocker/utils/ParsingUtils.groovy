@@ -43,6 +43,7 @@ class ParsingUtils {
             'pid',
             'ports',
             'privileged',
+            'publish_all',
             'restart',
             'security_opt',
             'stdin_open',

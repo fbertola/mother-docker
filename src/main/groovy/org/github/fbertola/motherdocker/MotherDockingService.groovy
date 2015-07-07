@@ -83,7 +83,7 @@ class MotherDockingService {
 
         try {
             def info = client.inspectContainer(containerId)
-            def portMappings = info.networkSettings().portMapping()
+            def portMappings = info.hostConfig().portBindings()
 
             log.info('Service \'{}\' port mappings: {}', name, portMappings)
 
@@ -249,6 +249,7 @@ class MotherDockingService {
             builder.volumesFrom(ensureJavaString((options['volumes_from']) as List))
 
         builder.privileged((options['privileged'] ?: false) as Boolean)
+                .publishAllPorts((options['publish_all'] ?: false) as Boolean)
 
         return builder.build()
     }
@@ -293,16 +294,20 @@ class MotherDockingService {
         def bindings = [:]
 
         (options['ports'] ?: []).each { String port ->
-            if (port.count(':') == 0) {
-                bindings[port] = [PortBinding.of('0.0.0.0', port)]
-            } else if (port.count(':') == 1) {
-                def (String host, String container) = port.split(':')
-                bindings[container] = [PortBinding.of('0.0.0.0', host)]
-            } else if (port.count(':') == 2) {
-                def (String ip, String host, String container) = port.split(':')
-                bindings[container] = [PortBinding.of(ip, host)]
-            } else {
-                throw new ServiceException("Invalid port binding: ${port}")
+            switch (port.count(':')) {
+                case 0:
+                    bindings[port] = [PortBinding.of('0.0.0.0', port)]
+                    break
+                case 1:
+                    def (String host, String container) = port.split(':')
+                    bindings[container] = [PortBinding.of('0.0.0.0', host)]
+                    break
+                case 2:
+                    def (String ip, String host, String container) = port.split(':')
+                    bindings[container] = [PortBinding.of(ip, host)]
+                    break
+                default:
+                    throw new ServiceException("Invalid port binding: ${port}")
             }
         }
 

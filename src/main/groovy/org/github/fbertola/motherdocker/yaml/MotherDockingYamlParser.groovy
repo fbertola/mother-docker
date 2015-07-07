@@ -51,7 +51,7 @@ class MotherDockingYamlParser {
         otherServiceDict = otherLoader.makeServiceDictionary(serviceDictionary['name'], otherServiceDict)
         validateExtendedServiceDict(otherServiceDict, otherConfigPath, extendsOptions['service'])
 
-        return mergeServiceDictionaries(otherServiceDict, serviceDictionary)
+        mergeServiceDictionaries(otherServiceDict, serviceDictionary)
     }
 
     private String signature(name) {

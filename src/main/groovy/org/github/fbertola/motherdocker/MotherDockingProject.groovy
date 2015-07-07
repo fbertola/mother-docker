@@ -37,8 +37,7 @@ class MotherDockingProject {
     }
 
     def getPortMappings() {
-        services.inject([:]) { map, s ->
-            // FIXME: merge warning
+        return services.inject([:]) { map, s ->
             map << s.getPortMappings()
             return map
         }

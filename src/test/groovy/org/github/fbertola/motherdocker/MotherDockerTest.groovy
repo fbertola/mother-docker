@@ -2,6 +2,7 @@ package org.github.fbertola.motherdocker
 
 import com.spotify.docker.client.DefaultDockerClient
 import groovy.sql.Sql
+import org.codehaus.groovy.runtime.IOGroovyMethods
 import spock.lang.IgnoreIf
 import spock.lang.Specification
 
@@ -41,6 +42,9 @@ class MotherDockerTest extends Specification {
         then: 'nothing bad happened'
         notThrown(Exception.class)
 
+        and: 'ports are exposed'
+        println project.getPortMappings()
+
         and: 'Postgres is reachable'
         assert isPostgresReachable()
 
@@ -52,6 +56,7 @@ class MotherDockerTest extends Specification {
     @IgnoreIf({ !isDockerReachable() })
     def 'BuildProjectFromFile - should correctly build a simple Nginx image'() {
         setup:
+
         def client = new DefaultDockerClient("unix:///var/run/docker.sock")
         def project = buildProjectFromFile("${ORIG}/nginx.yml", client)
 
@@ -60,6 +65,9 @@ class MotherDockerTest extends Specification {
 
         then: 'nothing bad happened'
         notThrown(Exception.class)
+
+        and: 'ports are exposed'
+        println project.getPortMappings()
 
         and: 'Nginx is reachable'
         assert isNginxReachable()
