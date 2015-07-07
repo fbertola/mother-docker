@@ -19,7 +19,7 @@ _MotherDocker_ is based on the excellent [Spotify's Docker Client](https://githu
 new DefaultDockerClient("unix:///var/run/docker.sock").withCloseable { client ->
     
     // Creates the project
-    def project = MotherDocker.buildProjectFromFile("${ORIG}/nginx.yml", client)
+    def project = MotherDocker.buildProjectFromFile(filename, client)
     
     // Starts the project
     project.start()
