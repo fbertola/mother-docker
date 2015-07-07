@@ -70,6 +70,25 @@ public class MotherDockerRule extends ExternalResource {
 }
 ```
 
+## Installation
+
+If you're using _Maven_:
+
+```xml
+<dependency>
+    <groupId>org.github.fbertola</groupId>
+    <artifactId>mother-docker</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+</dependency>
+```
+
+If you're using _Gradle_:
+
+```groovy
+compile 'org.github.fbertola:mother-docker:1.0.0-SNAPSHOT'
+```
+
+
 ## Docker-Compose extensions
 
 _MotherDocker_ adds some new useful extensions to the original _YAML_ syntax:
