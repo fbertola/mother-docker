@@ -1,12 +1,12 @@
-package org.github.fbertola.motherdocker.utils
+package com.github.fbertola.motherdocker.utils
 
-import org.github.fbertola.motherdocker.exceptions.ParserException
+import com.github.fbertola.motherdocker.exceptions.ParserException
 import spock.lang.IgnoreIf
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import static java.lang.System.getenv
-import static org.github.fbertola.motherdocker.utils.ParsingUtils.*
+import static ParsingUtils.*
 
 class ParsingUtilsTest extends Specification {
 

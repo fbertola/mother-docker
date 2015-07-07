@@ -1,12 +1,12 @@
-package org.github.fbertola.motherdocker
+package com.github.fbertola.motherdocker
 
 import com.spotify.docker.client.DockerClient
 import groovy.util.logging.Slf4j
-import org.github.fbertola.motherdocker.yaml.MotherDockingYamlParser
+import com.github.fbertola.motherdocker.yaml.MotherDockingYamlParser
 
 import java.nio.file.FileSystems
 
-import static org.github.fbertola.motherdocker.utils.ParsingUtils.loadYaml
+import static com.github.fbertola.motherdocker.utils.ParsingUtils.loadYaml
 
 @Slf4j
 class MotherDocker {

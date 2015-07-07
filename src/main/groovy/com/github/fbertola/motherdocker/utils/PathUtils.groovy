@@ -1,4 +1,4 @@
-package org.github.fbertola.motherdocker.utils
+package com.github.fbertola.motherdocker.utils
 
 import static java.lang.System.getProperty
 import static java.lang.System.getenv

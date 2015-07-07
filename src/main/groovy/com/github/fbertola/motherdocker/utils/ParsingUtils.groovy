@@ -1,6 +1,6 @@
-package org.github.fbertola.motherdocker.utils
+package com.github.fbertola.motherdocker.utils
 
-import org.github.fbertola.motherdocker.exceptions.ParserException
+import com.github.fbertola.motherdocker.exceptions.ParserException
 import org.yaml.snakeyaml.Yaml
 
 import java.nio.file.FileSystems

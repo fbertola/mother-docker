@@ -1,4 +1,4 @@
-package org.github.fbertola.motherdocker.utils
+package com.github.fbertola.motherdocker.utils
 
 import spock.lang.Requires
 import spock.lang.Specification

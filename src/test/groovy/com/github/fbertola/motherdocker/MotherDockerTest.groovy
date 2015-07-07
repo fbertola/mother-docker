@@ -1,13 +1,12 @@
-package org.github.fbertola.motherdocker
+package com.github.fbertola.motherdocker
 
 import com.spotify.docker.client.DefaultDockerClient
 import groovy.sql.Sql
-import org.codehaus.groovy.runtime.IOGroovyMethods
 import spock.lang.IgnoreIf
 import spock.lang.Specification
 
-import static org.github.fbertola.motherdocker.MotherDocker.buildProjectFromFile
-import static org.github.fbertola.motherdocker.MotherDockerTest.isDockerReachable
+import static MotherDocker.buildProjectFromFile
+import static MotherDockerTest.isDockerReachable
 
 class MotherDockerTest extends Specification {
 

@@ -1,4 +1,4 @@
-package org.github.fbertola.motherdocker.exceptions
+package com.github.fbertola.motherdocker.exceptions
 
 class ProjectException extends Exception {
 

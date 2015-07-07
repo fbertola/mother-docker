@@ -1,9 +1,9 @@
-package org.github.fbertola.motherdocker.yaml
+package com.github.fbertola.motherdocker.yaml
 
-import org.github.fbertola.motherdocker.exceptions.ParserException
+import com.github.fbertola.motherdocker.exceptions.ParserException
 import spock.lang.Specification
 
-import static org.github.fbertola.motherdocker.utils.ParsingUtils.loadYaml
+import static com.github.fbertola.motherdocker.utils.ParsingUtils.loadYaml
 
 class MotherDockingYamlParserTest extends Specification {
 

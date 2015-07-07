@@ -1,10 +1,10 @@
-package org.github.fbertola.motherdocker.yaml
+package com.github.fbertola.motherdocker.yaml
 
-import org.github.fbertola.motherdocker.exceptions.ParserException
+import com.github.fbertola.motherdocker.exceptions.ParserException
 
 import java.nio.file.FileSystems
 
-import static org.github.fbertola.motherdocker.utils.ParsingUtils.*
+import static com.github.fbertola.motherdocker.utils.ParsingUtils.*
 
 class MotherDockingYamlParser {
 

@@ -1,4 +1,4 @@
-package org.github.fbertola.motherdocker.utils
+package com.github.fbertola.motherdocker.utils
 
 import com.github.rholder.retry.RetryerBuilder
 import com.google.common.base.Predicate

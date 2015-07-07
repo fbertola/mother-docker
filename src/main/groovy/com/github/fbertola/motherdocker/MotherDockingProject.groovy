@@ -1,10 +1,10 @@
-package org.github.fbertola.motherdocker
+package com.github.fbertola.motherdocker
 
 import com.spotify.docker.client.DockerClient
 import groovy.util.logging.Slf4j
-import org.github.fbertola.motherdocker.exceptions.ProjectException
+import com.github.fbertola.motherdocker.exceptions.ProjectException
 
-import static org.github.fbertola.motherdocker.utils.ParsingUtils.getServiceNameFromNet
+import static com.github.fbertola.motherdocker.utils.ParsingUtils.getServiceNameFromNet
 
 @Slf4j
 class MotherDockingProject {
