@@ -76,7 +76,7 @@ If you're using _Maven_:
 
 ```xml
 <dependency>
-    <groupId>org.github.fbertola</groupId>
+    <groupId>com.github.fbertola</groupId>
     <artifactId>mother-docker</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 </dependency>
@@ -85,7 +85,7 @@ If you're using _Maven_:
 If you're using _Gradle_:
 
 ```groovy
-compile 'org.github.fbertola:mother-docker:1.0.0-SNAPSHOT'
+compile 'com.github.fbertola:mother-docker:1.0.0-SNAPSHOT'
 ```
 
 
