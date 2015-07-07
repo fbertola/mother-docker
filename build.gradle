@@ -131,53 +131,41 @@ artifacts {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Publishing
 
-def promptPasswords() {
+def promptCredentials() {
     def console = System.console()
+
     if (console == null) {
         throw new RuntimeException("Console is not available. Try running from a terminal or with --no-daemon")
     }
 
-    def sonatypeOssPassword = console.readPassword("\nEnter Sonatype password: ")
-    sonatypeOssPassword = new String(sonatypeOssPassword)
-    if (sonatypeOssPassword.size() <= 0) {
+    def username = console.readLine("\nEnter Sonatype username: ")
+    username = new String(username)
+
+    if (username.size() <= 0) {
+        throw new InvalidUserDataException("Empty Sonatype username")
+    }
+
+    def password = console.readPassword("\nEnter Sonatype password: ")
+    password = new String(password)
+
+    if (password.size() <= 0) {
         throw new InvalidUserDataException("Empty Sonatype password")
     }
 
-    def signingKeyPassword = console.readPassword("\nEnter signing key password: ")
-    signingKeyPassword = new String(signingKeyPassword)
-    if (signingKeyPassword.size() <= 0) {
-        throw new InvalidUserDataException("Empty signing key password")
-    }
-
-    // set passwords globally for access elsewhere
-    allprojects { ext."signing.password" = signingKeyPassword }
-    allprojects { ext."sonatype.Password" = sonatypeOssPassword }
-
-}
-
-if (isReleaseVersion && gradle.startParameter.taskNames.contains("uploadArchives")) {
-    signing {
-        sign configurations.archives
-    }
-} else {
-    task signArchives {
-        // do nothing
-    }
+    return ['username': username, 'password': password]
 }
 
 uploadArchives {
     repositories {
         if (gradle.startParameter.taskNames.contains("uploadArchives")) {
             mavenDeployer {
-                beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-
                 // for snapshots https://oss.sonatype.org/content/repositories/snapshots
                 // for staging/release https://oss.sonatype.org/service/local/staging/deploy/maven2
                 repository(
                         url: 'https://oss.sonatype.org/content/repositories/snapshots'
                 ) {
-                    promptPasswords()
-                    authentication(userName: sonatypeUsername, password: sonatypePassword)
+                    def credentials = promptCredentials()
+                    authentication(userName: credentials['username'], password: credentials['password'])
                 }
 
                 pom.project project_pom
