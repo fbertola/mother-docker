@@ -117,6 +117,12 @@ Additionally, the `log_message` strategy accepts the system property `motherdock
 
 No, _MotherDocker_ it is **not** intended to be a replacement for _Docker Compose_. It lacks all the images management options (e.g. the `up` or `restart` commands) but nevertheless it can fully understand its configuration files.
 
+* **It is possible to run multiple instances of MotherDocker on the same CI?**
+
+Definitely _yes_, but it depends on how the containers are configured.
+One of the major problems is port collisions, that is, thow or more containers try to listen on the same ports. The safest way is to use [links](https://docs.docker.com/userguide/dockerlinks/) or to use the `publish_all` option, as explained earlier.
+Additionally, be careful when using _external volumes_.
+
 * **Why the name?**
 
 For the _lulz_ :stuck_out_tongue:
