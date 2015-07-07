@@ -175,7 +175,7 @@ uploadArchives {
                 // for snapshots https://oss.sonatype.org/content/repositories/snapshots
                 // for staging/release https://oss.sonatype.org/service/local/staging/deploy/maven2
                 repository(
-                        url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+                        url: 'https://oss.sonatype.org/content/repositories/snapshots'
                 ) {
                     promptPasswords()
                     authentication(userName: sonatypeUsername, password: sonatypePassword)
