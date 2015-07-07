@@ -7,18 +7,78 @@ A simple [Docker](https://github.com/dotcloud/docker) orchestrator written in Gr
 
 ## About
 
-_MotherDocker_ was created as a tool for easing integration testing with _Docker_ on the _JVM_. It is a partial rewrite in _Groovy_ of [Docker Compose](https://docs.docker.com/compose/) (formely _Fig_).
+_MotherDocker_ was created as a tool for easing integration testing with _Docker_ on the _JVM_. It is a partial rewrite in _Groovy_ of [Docker Compose](https://docs.docker.com/compose/) (formerly _Fig_).
 Although this library doesn't have (and was not intended to) all the system management options of _Docker Compose_, it can fully understand its **YAML** configuration files.         
 
 _MotherDocker_ is based on the excellent [Spotify's Docker Client](https://github.com/spotify/docker-client).
 
 ## Usage
 
-_to-do_
+```groovy
+// Initializes the Docker client
+new DefaultDockerClient("unix:///var/run/docker.sock").withCloseable { client ->
+    
+    // Creates the project
+    def project = MotherDocker.buildProjectFromFile("${ORIG}/nginx.yml", client)
+    
+    // Starts the project
+    project.start()
+    
+    // Retrieves the network configuration
+    def mappings = project.getPortMappings()
+    
+    // Application logic...
+    
+    // Stop the project
+    project.stop()
+    
+}
+```
+
+_MotherDocker_ could be easily integrated in [Spock](https://github.com/spockframework/spock) or [Junit](https://github.com/junit-team/junit) with a simple [Rule](https://github.com/junit-team/junit/wiki/Rules):
+
+```java
+public class MotherDockerRule extends ExternalResource {
+ 
+    private MotherDockingProject project;  
+ 
+    public DockerContainerRule(String filename) {
+        DockerClient client = new DefaultDockerClient("unix:///var/run/docker.sock");
+        this.project = MotherDocker.buildProjectFromFile(filename, client)
+    }
+ 
+    @Override
+    public Statement apply(Statement base, Description description) {
+        return super.apply(base, description);
+    }
+ 
+    @Override
+    protected void before() throws Throwable {
+        super.before();
+        project.start();
+    }
+ 
+    @Override
+    protected void after() {
+        super.after();
+        try {
+            project.stop();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
 
 ## Docker-Compose extensions
 
 _MotherDocker_ adds some new useful extensions to the original _YAML_ syntax:
+
+#### Networking
+
+It is often advisable not to statically bind specific ports in your containers, either because this will prevents from running the same container twice (e.g. when container creation is a part of multiple integration tests) or because some service might already using it. In these cases, it is useful to let Docker assign an ephemeral port to all exposed ones; this is possible with the `publish_all` option.
+
+For further documentation see [this link](https://docs.docker.com/articles/networking/#binding-ports).
 
 #### Wait Strategies
 
