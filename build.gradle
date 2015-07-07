@@ -8,18 +8,17 @@ ext {
     project_version = '1.0.0-SNAPSHOT'
     project_jdk = '1.8'
     project_pom = {
-        name 'motherdocker'
+        name 'mother-docker'
         packaging 'jar'
         description "A simple Docker orchestrator written in Groovy."
-        url 'http://fbertola.github.com'
+        url 'http://github.com/fbertola/mother-docker'
 
-        /*
+
         scm {
-            url 'scm:git@github.com:rholder/guava-retrying.git'
-            connection 'scm:git@github.com:rholder/guava-retrying.git'
-            developerConnection 'scm:git@github.com:rholder/guava-retrying.git'
+            url 'scm:git@github.com:fbertola/mother-docker.git'
+            connection 'scm:git@github.com:fbertola/mother-docker.git'
+            developerConnection 'scm:git@github.com:fbertola/mother-docker.git'
         }
-        */
 
         licenses {
             license {
@@ -152,7 +151,7 @@ def promptPasswords() {
 
     // set passwords globally for access elsewhere
     allprojects { ext."signing.password" = signingKeyPassword }
-    allprojects { ext."sonatypePassword" = sonatypeOssPassword }
+    allprojects { ext."sonatype.Password" = sonatypeOssPassword }
 
 }
 
