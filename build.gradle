@@ -89,9 +89,9 @@ dependencies {
     compile 'org.apache.commons:commons-lang3:3.4'
     compile 'org.codehaus.groovy:groovy-all:2.3.11'
     compile "com.github.rholder:guava-retrying:1.0.7"
+    compile 'org.spockframework:spock-core:1.0-groovy-2.4'
 
     testCompile 'postgresql:postgresql:9.1-901-1.jdbc4'
-    testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
