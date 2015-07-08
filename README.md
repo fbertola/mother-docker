@@ -35,16 +35,24 @@ new DefaultDockerClient("unix:///var/run/docker.sock").withCloseable { client ->
 }
 ```
 
-_MotherDocker_ could be easily integrated in [Spock](https://github.com/spockframework/spock) or [Junit](https://github.com/junit-team/junit) with a simple [Rule](https://github.com/junit-team/junit/wiki/Rules):
+#### Integration with test frameworks
+
+If you're using [Spock](https://github.com/spockframework/spock) you could use the provided `@WithDockerConfig` extension. As an example see [this](https://github.com/fbertola/mother-docker/blob/master/src/test/groovy/com/github/fbertola/motherdocker/MotherDockerTest.groovy).
+
+If you're using [Junit](https://github.com/junit-team/junit) you could use a simple [Rule](https://github.com/junit-team/junit/wiki/Rules), for example:
 
 ```java
-public class MotherDockerRule extends ExternalResource {
+public class MotherDockingRule extends ExternalResource {
  
     private MotherDockingProject project;  
  
     public DockerContainerRule(String filename) {
         DockerClient client = new DefaultDockerClient("unix:///var/run/docker.sock");
         this.project = MotherDocker.buildProjectFromFile(filename, client)
+    }
+ 
+    public Map<String, List<PortBinding>> getPortMappings() {
+        return project.getPortMappings();
     }
  
     @Override
@@ -67,6 +75,7 @@ public class MotherDockerRule extends ExternalResource {
             e.printStackTrace();
         }
     }
+    
 }
 ```
 
@@ -87,7 +96,6 @@ If you're using _Gradle_:
 ```groovy
 compile 'com.github.fbertola:mother-docker:1.0.0-SNAPSHOT'
 ```
-
 
 ## Docker-Compose extensions
 
@@ -120,7 +128,7 @@ No, _MotherDocker_ it is **not** intended to be a replacement for _Docker Compos
 * **It is possible to run multiple instances of MotherDocker on the same CI?**
 
 Definitely _yes_, but it depends on how the containers are configured.
-One of the major problems is port collisions, that is, thow or more containers try to listen on the same ports. The safest way is to use [links](https://docs.docker.com/userguide/dockerlinks/) or to use the `publish_all` option, as explained earlier.
+One of the major problems is port collision, that is, two or more containers try to listen on the same ports. The safest way is to use [links](https://docs.docker.com/userguide/dockerlinks/) or to use the `publish_all` option, as explained earlier.
 Additionally, be careful when using _external volumes_.
 
 * **Why the name?**
