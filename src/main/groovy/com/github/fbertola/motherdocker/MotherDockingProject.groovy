@@ -1,8 +1,8 @@
 package com.github.fbertola.motherdocker
 
+import com.github.fbertola.motherdocker.exceptions.ProjectException
 import com.spotify.docker.client.DockerClient
 import groovy.util.logging.Slf4j
-import com.github.fbertola.motherdocker.exceptions.ProjectException
 
 import static com.github.fbertola.motherdocker.utils.ParsingUtils.getServiceNameFromNet
 
@@ -38,7 +38,12 @@ class MotherDockingProject {
 
     def getPortMappings() {
         return services.inject([:]) { map, s ->
-            map << s.getPortMappings()
+            def portMappings = s.getPortMappings()
+
+            if (portMappings) {
+                map << portMappings
+            }
+
             return map
         }
     }

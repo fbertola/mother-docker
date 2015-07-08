@@ -83,7 +83,7 @@ class MotherDockingService {
 
         try {
             def info = client.inspectContainer(containerId)
-            def portMappings = info.hostConfig().portBindings()
+            def portMappings = info?.hostConfig()?.portBindings()
 
             log.info('Service \'{}\' port mappings: {}', name, portMappings)
 
@@ -280,7 +280,6 @@ class MotherDockingService {
                 .macAddress(options['mac_address'] as String)
                 .memory(options['mem_limit'] as Long)
                 .tty('tty' in options)
-
 
         if ('hostname' in options && !('domainname' in options) && '.' in options['hostname']) {
             def parts = (options['hostname'] as String).split('.')

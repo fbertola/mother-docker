@@ -48,9 +48,9 @@ class DockerUtils {
     }
 
     public static ProgressHandler progressHandler() {
-        //if (log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             return new AnsiProgressHandler(System.err)
-        /*} else {
+        } else {
             return new ProgressHandler() {
 
                 @Override
@@ -59,7 +59,7 @@ class DockerUtils {
                 }
 
             }
-        }*/
+        }
     }
 
     private static def logContainsMessage(LogMessage logMessage, String message) {

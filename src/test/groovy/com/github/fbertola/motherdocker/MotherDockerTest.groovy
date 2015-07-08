@@ -1,85 +1,61 @@
 package com.github.fbertola.motherdocker
 
+import com.github.fbertola.motherdocker.spock.WithDockerConfig
 import com.spotify.docker.client.DefaultDockerClient
+import com.spotify.docker.client.DockerClient
+import com.spotify.docker.client.messages.PortBinding
 import groovy.sql.Sql
 import spock.lang.IgnoreIf
+import spock.lang.Shared
 import spock.lang.Specification
 
-import static MotherDocker.buildProjectFromFile
 import static MotherDockerTest.isDockerReachable
 
 class MotherDockerTest extends Specification {
 
-    static final def ORIG = 'src/test/resources/docker-compose/original'
+    static final def NGINX = 'src/test/resources/docker-compose/original/nginx.yml'
+
+    static final def POSTGRES = 'src/test/resources/docker-compose/original/postgres.yml'
+
+    @Shared
+    Map<String, List<PortBinding>> portMappings = [:]
 
     @IgnoreIf({ !isDockerReachable() })
-    def 'BuildProjectFromFile - should correctly create and start a simple busybox image'() {
-        setup:
-        def client = new DefaultDockerClient("unix:///var/run/docker.sock")
-        def project = buildProjectFromFile("${ORIG}/busybox.yml", client)
-
-        when: 'trying to start a basic image'
-        project.start()
-
-        then: 'nothing bad happened'
-        notThrown(Exception.class)
-
-        cleanup:
-        project.stop()
-        client.close()
-    }
-
-    @IgnoreIf({ !isDockerReachable() })
+    @WithDockerConfig(filename = MotherDockerTest.POSTGRES, callback = { portMappings.clear(); portMappings << it })
     def 'BuildProjectFromFile - should correctly create and start a simple Postgres image'() {
-        setup:
-        def client = new DefaultDockerClient("unix:///var/run/docker.sock")
-        def project = buildProjectFromFile("${ORIG}/postgres.yml", client)
+        expect: 'ports are exposed'
+        def bindings = portMappings['5432']
 
-        when: 'trying to start a basic Postgres image'
-        project.start()
-
-        then: 'nothing bad happened'
-        notThrown(Exception.class)
-
-        and: 'ports are exposed'
-        println project.getPortMappings()
+        assert bindings
+        assert bindings.size() == 1
+        assert bindings[0].hostPort() == '1234'
 
         and: 'Postgres is reachable'
         assert isPostgresReachable()
-
-        cleanup:
-        project.stop()
-        client.close()
     }
 
     @IgnoreIf({ !isDockerReachable() })
+    @WithDockerConfig(filename = MotherDockerTest.NGINX, callback = { portMappings.clear(); portMappings << it })
     def 'BuildProjectFromFile - should correctly build a simple Nginx image'() {
-        setup:
+        expect: 'ports are exposed'
+        def bindings = portMappings['80']
 
-        def client = new DefaultDockerClient("unix:///var/run/docker.sock")
-        def project = buildProjectFromFile("${ORIG}/nginx.yml", client)
-
-        when: 'trying to start a basic nginx image'
-        project.start()
-
-        then: 'nothing bad happened'
-        notThrown(Exception.class)
-
-        and: 'ports are exposed'
-        println project.getPortMappings()
+        assert bindings
+        assert bindings.size() == 1
+        assert bindings[0].hostPort() == '1234'
 
         and: 'Nginx is reachable'
         assert isNginxReachable()
-
-        cleanup:
-        project.stop()
-        client.close()
     }
 
-    private static boolean isNginxReachable() {
+    private boolean isNginxReachable() {
+        def binding = portMappings['80'][0]
+        def host = binding.hostIp()
+        def port = binding.hostPort()
+
         def reachable = false
         def socket = new Socket()
-        def address = new InetSocketAddress('127.0.0.1', 1234)
+        def address = new InetSocketAddress(host, port as Integer)
 
         socket.withCloseable {
             socket.connect(address, 1000)
@@ -89,9 +65,13 @@ class MotherDockerTest extends Specification {
         return reachable
     }
 
-    private static boolean isPostgresReachable() {
+    private boolean isPostgresReachable() {
+        def binding = portMappings['5432'][0]
+        def host = binding.hostIp()
+        def port = binding.hostPort()
+
         def sql = Sql.newInstance(
-                "jdbc:postgresql://localhost:1234/superduperuser",
+                "jdbc:postgresql://${host}:${port}/superduperuser",
                 'superduperuser',
                 'superdupersecretpassword',
                 'org.postgresql.Driver')
@@ -101,10 +81,11 @@ class MotherDockerTest extends Specification {
         return result.booleanValue()
     }
 
-    public static def isDockerReachable() {
+    private static def isDockerReachable() {
         try {
-            def ping = new DefaultDockerClient("unix:///var/run/docker.sock").ping()
-            return ping == 'OK'
+            new DefaultDockerClient("unix:///var/run/docker.sock").withCloseable { DockerClient client ->
+                return client.ping() == 'OK'
+            }
         } catch (Exception ignored) {
             return false
         }
