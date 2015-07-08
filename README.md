@@ -69,11 +69,7 @@ public class MotherDockingRule extends ExternalResource {
     @Override
     protected void after() {
         super.after();
-        try {
-            project.stop();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        project.stop();
     }
     
 }
