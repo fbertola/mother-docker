@@ -5,7 +5,7 @@ import org.gradle.api.artifacts.maven.MavenDeployment
 
 ext {
     project_group = 'com.github.fbertola'
-    project_version = '1.0.0-SNAPSHOT'
+    project_version = '1.0.0-Beta1'
     project_jdk = '1.8'
     project_pom = {
         name 'mother-docker'
@@ -75,6 +75,7 @@ targetCompatibility = project_jdk
 apply plugin: 'idea'
 apply plugin: 'maven'
 apply plugin: 'groovy'
+apply plugin: 'signing'
 
 repositories {
     mavenLocal()
@@ -129,6 +130,38 @@ artifacts {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Signing
+
+def promptForSigningCredentials() {
+    // Use Java 6's console to read from the console (no good for
+    // a CI environment)
+    Console console = System.console()
+    console.printf "\n\nWe have to sign some things in this build." +
+            "\n\nPlease enter your signing details.\n\n"
+
+    def id = console.readLine("PGP Key Id: ")
+    def file = console.readLine("PGP Secret Key Ring File (absolute path): ")
+    def password = console.readPassword("PGP Private Key Password: ")
+
+    allprojects { ext."signing.keyId" = id }
+    allprojects { ext."signing.secretKeyRingFile" = file }
+    allprojects { ext."signing.password" = password }
+
+    console.printf "\nThanks.\n\n"
+}
+
+if (isReleaseVersion && gradle.startParameter.taskNames.contains("uploadArchives")) {
+    signing {
+        promptForSigningCredentials()
+        sign configurations.archives
+    }
+} else {
+    task signArchives {
+        // do nothing
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Publishing
 
 def promptCredentials() {
@@ -157,12 +190,16 @@ def promptCredentials() {
 
 uploadArchives {
     repositories {
+        mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+        }
+
         if (gradle.startParameter.taskNames.contains("uploadArchives")) {
             mavenDeployer {
                 // for snapshots https://oss.sonatype.org/content/repositories/snapshots
                 // for staging/release https://oss.sonatype.org/service/local/staging/deploy/maven2
                 repository(
-                        url: 'https://oss.sonatype.org/content/repositories/snapshots'
+                        url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2'
                 ) {
                     def credentials = promptCredentials()
                     authentication(userName: credentials['username'], password: credentials['password'])
