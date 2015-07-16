@@ -83,14 +83,14 @@ If you're using _Maven_:
 <dependency>
     <groupId>com.github.fbertola</groupId>
     <artifactId>mother-docker</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0-Beta1</version>
 </dependency>
 ```
 
 If you're using _Gradle_:
 
 ```groovy
-compile 'com.github.fbertola:mother-docker:1.0.0-SNAPSHOT'
+compile 'com.github.fbertola:mother-docker:1.0.0-Beta1'
 ```
 
 ## Docker-Compose extensions
