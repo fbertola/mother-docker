@@ -6,7 +6,6 @@ import com.spotify.docker.client.DockerClient
 import com.spotify.docker.client.messages.PortBinding
 import groovy.sql.Sql
 import spock.lang.IgnoreIf
-import spock.lang.Shared
 import spock.lang.Specification
 
 import static MotherDockerTest.isDockerReachable
@@ -17,41 +16,38 @@ class MotherDockerTest extends Specification {
 
     static final def POSTGRES = 'src/test/resources/docker-compose/original/postgres.yml'
 
-    @Shared
-    Map<String, List<PortBinding>> portMappings = [:]
-
     @IgnoreIf({ !isDockerReachable() })
-    @WithDockerConfig(filename = MotherDockerTest.POSTGRES, callback = { portMappings.clear(); portMappings << it })
+    @WithDockerConfig(filename = MotherDockerTest.POSTGRES)
     def 'BuildProjectFromFile - should correctly create and start a simple Postgres image'() {
         expect: 'ports are exposed'
-        def bindings = portMappings['5432']
+        List<PortBinding> bindings = portMappings['5432']
 
         assert bindings
         assert bindings.size() == 1
         assert bindings[0].hostPort() == '1234'
 
         and: 'Postgres is reachable'
-        assert isPostgresReachable()
+        assert isPostgresReachable(portMappings)
     }
 
     @IgnoreIf({ !isDockerReachable() })
-    @WithDockerConfig(filename = MotherDockerTest.NGINX, callback = { portMappings.clear(); portMappings << it })
+    @WithDockerConfig(filename = MotherDockerTest.NGINX)
     def 'BuildProjectFromFile - should correctly build a simple Nginx image'() {
         expect: 'ports are exposed'
-        def bindings = portMappings['80']
+        List<PortBinding> bindings = portMappings['80']
 
         assert bindings
         assert bindings.size() == 1
         assert bindings[0].hostPort() == '1234'
 
         and: 'Nginx is reachable'
-        assert isNginxReachable()
+        assert isNginxReachable(portMappings)
     }
 
-    private boolean isNginxReachable() {
-        def binding = portMappings['80'][0]
-        def host = binding.hostIp()
-        def port = binding.hostPort()
+    static boolean isNginxReachable(Map<String, List<PortBinding>> portMappings) {
+        PortBinding binding = portMappings['80'][0]
+        String host = binding.hostIp()
+        String port = binding.hostPort()
 
         def reachable = false
         def socket = new Socket()
@@ -65,10 +61,10 @@ class MotherDockerTest extends Specification {
         return reachable
     }
 
-    private boolean isPostgresReachable() {
-        def binding = portMappings['5432'][0]
-        def host = binding.hostIp()
-        def port = binding.hostPort()
+    static boolean isPostgresReachable(Map<String, List<PortBinding>> portMappings) {
+        PortBinding binding = portMappings['5432'][0]
+        String host = binding.hostIp()
+        String port = binding.hostPort()
 
         def sql = Sql.newInstance(
                 "jdbc:postgresql://${host}:${port}/superduperuser",
@@ -81,9 +77,9 @@ class MotherDockerTest extends Specification {
         return result.booleanValue()
     }
 
-    private static def isDockerReachable() {
+    static def isDockerReachable() {
         try {
-            new DefaultDockerClient("unix:///var/run/docker.sock").withCloseable { DockerClient client ->
+            new DefaultDockerClient('unix:///var/run/docker.sock').withCloseable { DockerClient client ->
                 return client.ping() == 'OK'
             }
         } catch (Exception ignored) {

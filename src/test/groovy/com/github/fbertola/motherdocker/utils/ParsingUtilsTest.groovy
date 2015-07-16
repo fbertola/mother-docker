@@ -4,6 +4,7 @@ import com.github.fbertola.motherdocker.exceptions.ParserException
 import spock.lang.IgnoreIf
 import spock.lang.Specification
 import spock.lang.Unroll
+import spock.util.environment.RestoreSystemProperties
 
 import static java.lang.System.getenv
 import static ParsingUtils.*
@@ -13,7 +14,7 @@ class ParsingUtilsTest extends Specification {
     def 'ProcessContainerOptions - should correctly process container options'() {
         setup:
         def workingDir = '/home/antani'
-        def volumes = ['container', './host:container', '~/host:container']
+        def volumes = ['container', './uri:container', '~/uri:container']
         def build = ['file.txt', './dir/file.txt', '~/dir/file.txt']
         def labels = ['a=b', 'c=d']
         def wait = ['time': 123, 'log_message': 'message']
@@ -73,9 +74,9 @@ class ParsingUtilsTest extends Specification {
     def 'ResolveHostPaths - should correctly resolve host paths'() {
         setup:
         def userHome = System.getProperty('user.home')
-        def volumes = ['container', './host:container', '~/host:container']
+        def volumes = ['container', './uri:container', '~/uri:container']
 
-        when: 'trying to expand host paths'
+        when: 'trying to expand uri paths'
         def resolvedHostPaths = resolveHostPaths(volumes, userHome)
 
         then: 'the correct result is produces'
@@ -90,23 +91,20 @@ class ParsingUtilsTest extends Specification {
         thrown(ParserException.class)
     }
 
+    @RestoreSystemProperties
     @Unroll("resolveHostPath(#volume, #workingDir) should be #resolvedHostPath")
     def 'ResolveHostPath - should correctly resolve host path'() {
         setup:
-        def userHome = System.getProperty('user.home')
         System.setProperty('user.home', '/home/antani');
 
-        expect: 'correctly resolved host path'
+        expect: 'correctly resolved uri path'
         resolvedHostPath as String == (resolveHostPath(volume, workingDir) as String)
-
-        cleanup:
-        System.setProperty('user.home', userHome)
 
         where:
         volume             | workingDir     | resolvedHostPath
         'container'        | '/home/antani' | 'container'
-        './host:container' | '/home/antani' | '/home/antani/host:container'
-        '~/host:container' | '/home/antani' | '/home/antani/host:container'
+        './uri:container' | '/home/antani' | '/home/antani/uri:container'
+        '~/uri:container' | '/home/antani' | '/home/antani/uri:container'
     }
 
     @Unroll("mergeServiceDictionaries(#base, #override) should be #mergedDictionary")

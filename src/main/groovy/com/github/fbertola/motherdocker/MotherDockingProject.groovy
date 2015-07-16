@@ -28,15 +28,15 @@ class MotherDockingProject {
         log.info('Image plan: {}', services.collect { it['name'] })
     }
 
-    def start() {
+    void start() {
         services.each { s -> s.start() }
     }
 
-    def stop() {
+    void stop() {
         services.reverse().each { s -> s.stop() }
     }
 
-    def getPortMappings() {
+    Map getPortMappings() {
         return services.inject([:]) { map, s ->
             def portMappings = s.getPortMappings()
 
@@ -45,7 +45,7 @@ class MotherDockingProject {
             }
 
             return map
-        }
+        } as Map
     }
 
     private def analyzeLinks(parsedService) {

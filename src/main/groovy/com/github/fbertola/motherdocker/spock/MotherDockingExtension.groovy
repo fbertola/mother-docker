@@ -8,6 +8,10 @@ import org.spockframework.runtime.model.SpecInfo
 
 class MotherDockingExtension extends AbstractAnnotationDrivenExtension<WithDockerConfig> {
 
+    public MotherDockingExtension() {
+        ExpandoMetaClass.enableGlobally()
+    }
+
     void visitSpecAnnotation(WithDockerConfig annotation, SpecInfo spec) {
         addInterceptor(annotation, spec.getBottomSpec());
     }

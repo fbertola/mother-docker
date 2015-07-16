@@ -12,7 +12,10 @@ import java.lang.annotation.Target
 @ExtensionAnnotation(MotherDockingExtension.class)
 public @interface WithDockerConfig {
 
-    String filename() default ''
-    Class callback() default {}
+    String filename()
+
+    String uri() default 'unix:///var/run/docker.sock'
+
+    // TODO: certificates
 
 }
