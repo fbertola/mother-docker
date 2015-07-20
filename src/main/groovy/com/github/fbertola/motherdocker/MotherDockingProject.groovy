@@ -50,7 +50,7 @@ class MotherDockingProject {
 
     private def analyzeLinks(parsedService) {
         (parsedService['links'] ?: []).each { String link ->
-            def serviceName = link.split(':', 1)[0]
+            def serviceName = link.split(':')[0]
 
             if (!serviceExistInProject(serviceName)) {
                 throw new ProjectException("Service '${parsedService['name']}' has a link to service '$serviceName' which does not exist.")
