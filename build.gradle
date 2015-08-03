@@ -5,7 +5,7 @@ import org.gradle.api.artifacts.maven.MavenDeployment
 
 ext {
     project_group = 'com.github.fbertola'
-    project_version = '1.0.0-Beta1'
+    project_version = '1.0.0-Beta2'
     project_jdk = '1.8'
     project_pom = {
         name 'mother-docker'
