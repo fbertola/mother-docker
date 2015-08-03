@@ -83,7 +83,7 @@ If you're using _Maven_:
 <dependency>
     <groupId>com.github.fbertola</groupId>
     <artifactId>mother-docker</artifactId>
-    <version>1.0.0-Beta1</version>
+    <version>1.0.0-Beta2</version>
 </dependency>
 ```
 
