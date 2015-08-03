@@ -1,22 +1,22 @@
 package com.github.fbertola.motherdocker
 
+import com.github.fbertola.motherdocker.exceptions.ServiceException
 import com.spotify.docker.client.DockerClient
 import com.spotify.docker.client.ImageNotFoundException
 import com.spotify.docker.client.messages.ContainerConfig
 import com.spotify.docker.client.messages.HostConfig
 import com.spotify.docker.client.messages.PortBinding
 import groovy.util.logging.Slf4j
-import com.github.fbertola.motherdocker.exceptions.ServiceException
 
 import java.nio.file.FileSystems
 
+import static com.github.fbertola.motherdocker.utils.DockerUtils.*
+import static com.github.fbertola.motherdocker.utils.StringUtils.ensureJavaString
 import static com.spotify.docker.client.DockerClient.BuildParameter.FORCE_RM
 import static com.spotify.docker.client.DockerClient.ExecParameter.STDERR
 import static com.spotify.docker.client.DockerClient.ExecParameter.STDOUT
 import static com.spotify.docker.client.DockerClient.ExecStartParameter.DETACH
 import static java.util.concurrent.TimeUnit.MILLISECONDS
-import static com.github.fbertola.motherdocker.utils.DockerUtils.*
-import static com.github.fbertola.motherdocker.utils.StringUtils.ensureJavaString
 
 @Slf4j
 class MotherDockingService {
@@ -192,7 +192,7 @@ class MotherDockingService {
             pullImage(imageName)
         }
 
-        log.info('Done, now image \'{}\' exists')
+        log.info('Done, now image \'{}\' exists', imageName)
     }
 
     private void pullImage(String imageName) {
