@@ -3,6 +3,7 @@ package com.github.fbertola.motherdocker
 import com.github.fbertola.motherdocker.spock.WithDockerConfig
 import com.spotify.docker.client.DefaultDockerClient
 import com.spotify.docker.client.DockerClient
+import com.spotify.docker.client.messages.ContainerInfo
 import com.spotify.docker.client.messages.PortBinding
 import groovy.sql.Sql
 import spock.lang.IgnoreIf
@@ -20,28 +21,28 @@ class MotherDockerTest extends Specification {
     @WithDockerConfig(filename = MotherDockerTest.POSTGRES)
     def 'BuildProjectFromFile - should correctly create and start a simple Postgres image'() {
         expect: 'ports are exposed'
-        List<PortBinding> bindings = portMappings['5432']
+        ContainerInfo info= servicesInfo['postgres']
+        def ports = info.networkSettings().ports()
 
-        assert bindings
-        assert bindings.size() == 1
-        assert bindings[0].hostPort() == '1234'
+        assert info
+        assert ports.size() == 1
 
         and: 'Postgres is reachable'
-        assert isPostgresReachable(portMappings)
+        assert isPostgresReachable(ports)
     }
 
     @IgnoreIf({ !isDockerReachable() })
     @WithDockerConfig(filename = MotherDockerTest.NGINX)
     def 'BuildProjectFromFile - should correctly build a simple Nginx image'() {
         expect: 'ports are exposed'
-        List<PortBinding> bindings = portMappings['80']
+        ContainerInfo info= servicesInfo['nginx']
+        def ports = info.networkSettings().ports()
 
-        assert bindings
-        assert bindings.size() == 1
-        assert bindings[0].hostPort() == '1234'
+        assert info
+        assert ports.size() == 1
 
         and: 'Nginx is reachable'
-        assert isNginxReachable(portMappings)
+        assert isNginxReachable(ports)
     }
 
     static boolean isNginxReachable(Map<String, List<PortBinding>> portMappings) {
