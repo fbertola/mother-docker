@@ -5,6 +5,7 @@ import spock.lang.Specification
 
 import static VariablesUtils.expandUser
 import static VariablesUtils.expandVars
+import static com.github.fbertola.motherdocker.utils.VariablesUtils.expandPathVars
 import static java.lang.System.getenv
 
 class VariablesUtilsTest extends Specification {
@@ -49,7 +50,7 @@ class VariablesUtilsTest extends Specification {
     @Requires({ getenv('JAVA_HOME') })
     def 'ExpandVars - should correctly expand $JAVA_HOME variable'() {
         expect: 'expanded variables'
-        expandVars(path) != path
+        expandPathVars(path) != path
 
         where: 'a bunch of path-variable combinations'
         path << [
@@ -68,7 +69,7 @@ class VariablesUtilsTest extends Specification {
     @Requires({ !getenv('ANTANI_VAR') })
     def 'ExpandVars - should not expand non-existent variables'() {
         expect: 'nothing was expanded'
-        expandVars(path) == path
+        expandPathVars(path) == path
 
         where: 'a bunch of ill path-variable combinations'
         path << [
