@@ -20,7 +20,7 @@ class MotherDockingExtension extends AbstractAnnotationDrivenExtension<WithDocke
         addInterceptor(annotation, fixtureMethod);
     }
 
-    void addInterceptor(WithDockerConfig annotation, IInterceptable interceptable) {
+    static void addInterceptor(WithDockerConfig annotation, IInterceptable interceptable) {
         interceptable.addInterceptor(new MotherDockingInterceptor(annotation));
     }
 

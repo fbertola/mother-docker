@@ -5,8 +5,9 @@ import org.yaml.snakeyaml.Yaml
 
 import java.nio.file.FileSystems
 
-import static PathUtils.expandUser
-import static com.github.fbertola.motherdocker.utils.PathUtils.expandVars
+import static VariablesUtils.expandUser
+import static com.github.fbertola.motherdocker.utils.VariablesUtils.expandEnvVars
+import static com.github.fbertola.motherdocker.utils.VariablesUtils.expandPathVars
 import static java.lang.System.getenv
 import static org.apache.commons.io.FileUtils.readLines
 import static org.apache.commons.lang3.StringUtils.isNotBlank
@@ -176,7 +177,7 @@ class ParsingUtils {
 
         if (hostPath != null) {
             hostPath = expandUser(hostPath as String)
-            hostPath = expandVars(hostPath as String)
+            hostPath = expandPathVars(hostPath as String)
 
             return "${resolvePath(workingDir as String, hostPath as String)}:$containerPath"
         } else {
@@ -227,7 +228,7 @@ class ParsingUtils {
 
         listKeys.each { key ->
             if (key in base || key in override) {
-                dict[key] = (base[key] ?: []) + (override[key] ?: [])
+                dict[key] = ([base[key]] + [override[key]]).flatten() - null
             }
         }
 
@@ -445,7 +446,7 @@ class ParsingUtils {
 
     static Collection resolveEnvVar(String key, String val) {
         if (val != null) {
-            return [key, expandVars(val)]
+            return [key, expandEnvVars(val)]
         } else if (getenv(key) != null) {
             return [key, getenv(key)]
         } else {

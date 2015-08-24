@@ -4,7 +4,7 @@ class StringUtils {
 
     public static Map sanitizeStrings(Map map) {
         return map.inject([:]) { result, v ->
-            result[sanitizeStrings(v.key)] = sanitizeStrings(v.value)
+            result[sanitizeStrings(v.key) as String] = sanitizeStrings(v.value)
             result
         } as Map
     }

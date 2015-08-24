@@ -12,13 +12,12 @@ import static com.github.rholder.retry.BlockStrategies.threadSleepStrategy
 import static com.github.rholder.retry.StopStrategies.neverStop
 import static com.github.rholder.retry.WaitStrategies.fixedWait
 import static java.util.concurrent.CompletableFuture.supplyAsync
-import static java.util.concurrent.TimeUnit.SECONDS
 
 @Slf4j
 class DockerUtils {
 
     public static
-    def waitForExecFuture(DockerClient client, String execId, Long pauseBetweenRetries = 5, TimeUnit timeUnit = SECONDS) {
+    def waitForExecFuture(DockerClient client, String execId, Long pauseBetweenRetries, TimeUnit timeUnit) {
         def retryer = RetryerBuilder.newBuilder()
                 .retryIfResult({ !it } as Predicate)
                 .withBlockStrategy(threadSleepStrategy())

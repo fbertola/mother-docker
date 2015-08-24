@@ -24,13 +24,21 @@ class VariablesUtils {
         return home + path[i..-1]
     }
 
-    static def expandVars(String path) {
-        if (!path.contains('$')) {
-            return path
+    static def expandPathVars(String str) {
+        return expandVars(str, { String s -> getenv(s) })
+    }
+
+    static def expandEnvVars(String str) {
+        return expandVars(str, { String s -> getSpecialEnvVariables(s) })
+    }
+
+    private static def expandVars(String str, Closure getEnvVar) {
+        if (!str.contains('$')) {
+            return str
         }
 
-        def length = path.length()
-        def matcher = path =~ /\$(\w+|\{[^}]*\})/
+        def length = str.length()
+        def matcher = str =~ /\$(\w+|\{[^}]*\})/
 
         while (matcher.find()) {
             def start = matcher.start()
@@ -41,31 +49,28 @@ class VariablesUtils {
                 name = name[1..-2]
             }
 
-            def envVar = getEnvVariable(name)
+            def envVar = getEnvVar(name)
 
             if (envVar) {
-                def tail = path[end..<length]
-                def head = path[0..<start]
+                def tail = str[end..<length]
+                def head = str[0..<start]
 
-                path = head + envVar + tail
+                str = (head + envVar + tail)
             }
         }
 
-        return path
+        return str
     }
 
-    static def getEnvVariable(String name) {
-        if (name in ['GID', 'GROUPS', 'UID', 'USERNAME']) {
-            def unix = new UnixSystem()
+    static def getSpecialEnvVariables(String str) {
+        def unix = new UnixSystem()
 
-            switch (name) {
-                case 'GID': return unix.gid
-                case 'GROUPS': return unix.groups
-                case 'UID': return unix.uid
-                case 'USERNAME': return unix.username
-            }
-        } else {
-            return getenv(name)
+        switch (str) {
+            case 'GID': return unix.gid
+            case 'GROUPS': return unix.groups
+            case 'UID': return unix.uid
+            case 'USERNAME': return unix.username
+            default: return null
         }
     }
 
