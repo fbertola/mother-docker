@@ -1,5 +1,7 @@
 package com.github.fbertola.motherdocker.utils
 
+import com.sun.security.auth.module.UnixSystem
+
 import static java.lang.System.getProperty
 import static java.lang.System.getenv
 
@@ -39,7 +41,7 @@ class PathUtils {
                 name = name[1..-2]
             }
 
-            def envVar = getenv(name)
+            def envVar = getEnvVariable(name)
 
             if (envVar) {
                 def tail = path[end..<length]
@@ -50,6 +52,21 @@ class PathUtils {
         }
 
         return path
+    }
+
+    static def getEnvVariable(String name) {
+        if (name in ['GID', 'GROUPS', 'UID', 'USERNAME']) {
+            def unix = new UnixSystem()
+
+            switch (name) {
+                case 'GID': return unix.gid
+                case 'GROUPS': return unix.groups
+                case 'UID': return unix.uid
+                case 'USERNAME': return unix.username
+            }
+        } else {
+            return getenv(name)
+        }
     }
 
 }

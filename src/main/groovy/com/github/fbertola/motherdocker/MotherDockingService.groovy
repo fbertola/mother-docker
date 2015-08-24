@@ -11,7 +11,6 @@ import groovy.util.logging.Slf4j
 import java.nio.file.FileSystems
 
 import static com.github.fbertola.motherdocker.utils.DockerUtils.*
-import static com.github.fbertola.motherdocker.utils.StringUtils.ensureJavaString
 import static com.spotify.docker.client.DockerClient.BuildParameter.FORCE_RM
 import static com.spotify.docker.client.DockerClient.ExecParameter.STDERR
 import static com.spotify.docker.client.DockerClient.ExecParameter.STDOUT
@@ -56,12 +55,18 @@ class MotherDockingService {
 
     def getName() {
         return name
+        }
+
+    def getContainerId() {
+        return containerId
     }
 
-    def start() {
+    def start(Map otherContainers) {
         log.info('Starting service \'{}\'', name)
 
         ensureImageExists()
+
+        resolveExternalReferences(otherContainers)
 
         createAndRunContainer()
 
@@ -78,16 +83,11 @@ class MotherDockingService {
         log.info('Done! Service \'{}\' successfully stopped', name)
     }
 
-    def getPortMappings() {
+    def getServiceInfo() {
         log.info('Inspecting container {} for service \'{}\'', containerId, name)
 
         try {
-            def info = client.inspectContainer(containerId)
-            def portMappings = info?.hostConfig()?.portBindings()
-
-            log.info('Service \'{}\' port mappings: {}', name, portMappings)
-
-            return portMappings
+            return client.inspectContainer(containerId)
         } catch (Exception ex) {
             throw new ServiceException(ex)
         }
@@ -179,6 +179,25 @@ class MotherDockingService {
         }
     }
 
+    private void resolveExternalReferences(Map containersMap) {
+        def resolvedLinks = []
+
+        options['links']?.each { String link ->
+            def (external, alias) = link.split(':', 2)
+            resolvedLinks.add("${containersMap[external]}:${alias}".toString())
+        }
+
+        options['links'] = resolvedLinks
+
+        def resolvedVolumesFrom = []
+
+        options['volumesFrom']?.each { String vol ->
+            resolvedVolumesFrom.add("${containerConfig[vol]}".toString())
+        }
+
+        options['volumesFrom'] = resolvedVolumesFrom
+    }
+
     private void ensureImageExists() {
         if (inspectImage()) {
             return
@@ -234,22 +253,17 @@ class MotherDockingService {
 
     private def createHostConfig() {
         def builder = HostConfig.builder()
-
-        if ('dns' in options)
-            builder.dns(ensureJavaString((options['dns']) as List))
-        if ('binds' in options)
-            builder.binds(ensureJavaString((options['binds']) as List))
-        if ('dns_search' in options)
-            builder.dnsSearch(ensureJavaString((options['dns_search']) as List))
-        if ('links' in options)
-            builder.links(ensureJavaString((options['links']) as List))
-        if ('ports' in options)
-            builder.portBindings(createPortBindings() as Map)
-        if ('volumes_from' in options)
-            builder.volumesFrom(ensureJavaString((options['volumes_from']) as List))
-
-        builder.privileged((options['privileged'] ?: false) as Boolean)
+                .dns(options['dns'] as List)
+                .dnsSearch(options['dns_search'] as List)
+                .links(options['links'] as List)
+                .portBindings(createPortBindings() as Map)
+                .volumesFrom(options['volumes_from'] as List)
+                .privileged((options['privileged'] ?: false) as Boolean)
                 .publishAllPorts((options['publish_all'] ?: false) as Boolean)
+
+        if ('volumes' in options && !canBeBuilt()) {
+            builder.binds(options['volumes'] as List)
+        }
 
         return builder.build()
     }
@@ -257,18 +271,12 @@ class MotherDockingService {
     private def getContainerConfig() {
 
         def builder = ContainerConfig.builder()
-        if ('command' in options)
-            builder.cmd(ensureJavaString((options['command']) as List))
-        if ('entrypoint' in options)
-            builder.entrypoint(ensureJavaString((options['entrypoint']) as List))
-        if ('environment' in options)
-            builder.env(ensureJavaString((options['environment']) as List))
-        if ('expose' in options)
-            builder.exposedPorts(ensureJavaString((options['expose']) as Set))
-        if ('labels' in options)
-            builder.labels(ensureJavaString((options['labels']) as Map))
-
-        builder.attachStdin(true)
+                .cmd(options['command'] as List)
+                .entrypoint(options['entrypoint'] as List)
+                .env(options['environment'] as List)
+                .exposedPorts(options['expose'] as Set)
+                .labels(options['labels'] as Map)
+                .attachStdin(true)
                 .attachStderr(true)
                 .attachStdout(true)
                 .cpuset(options['cpuset'] as String)
@@ -281,6 +289,9 @@ class MotherDockingService {
                 .memory(options['mem_limit'] as Long)
                 .tty('tty' in options)
 
+        if ('volumes' in options && canBeBuilt()) {
+            builder.volumes(options['volumes'] as Set)
+        }
         if ('hostname' in options && !('domainname' in options) && '.' in options['hostname']) {
             def parts = (options['hostname'] as String).split('.')
             builder.hostname(parts[0]).domainname(parts[2])

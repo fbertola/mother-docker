@@ -2,17 +2,24 @@ package com.github.fbertola.motherdocker.utils
 
 class StringUtils {
 
-    public static Set<String> ensureJavaString(Set coll) {
-        return coll.collect { it.toString() } as Set
+    public static Map sanitizeStrings(Map map) {
+        return map.inject([:]) { result, v ->
+            result[sanitizeStrings(v.key)] = sanitizeStrings(v.value)
+            result
+        } as Map
     }
 
-    public static List<String> ensureJavaString(Collection coll) {
-        return coll.collect { it.toString() } as List
+    public static List sanitizeStrings(Collection coll) {
+        return coll.collect { sanitizeStrings(it) } as List
     }
 
+    public static String sanitizeStrings(String str) {
+        return str.replaceAll('\\r\\n|\\r|\\n', ' ').toString();
+    }
 
-    public static Map<String, String> ensureJavaString(Map map) {
-        return map.inject([:]) { m, v -> m[v.key.toString()] = v.value.toString() } as Map
+    // Pass-through
+    public static def sanitizeStrings(obj) {
+        obj
     }
 
 }

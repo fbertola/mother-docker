@@ -6,7 +6,7 @@ import org.yaml.snakeyaml.Yaml
 import java.nio.file.FileSystems
 
 import static PathUtils.expandUser
-import static PathUtils.expandVars
+import static com.github.fbertola.motherdocker.utils.PathUtils.expandVars
 import static java.lang.System.getenv
 import static org.apache.commons.io.FileUtils.readLines
 import static org.apache.commons.lang3.StringUtils.isNotBlank
@@ -218,8 +218,10 @@ class ParsingUtils {
         }
 
         def listKeys = [
+                'dns',
                 'ports',
                 'expose',
+                'dns_search',
                 'externalLinks'
         ]
 
@@ -229,15 +231,7 @@ class ParsingUtils {
             }
         }
 
-        def listOrStringKeys = ['dns', 'dns_search']
-
-        listOrStringKeys.each { key ->
-            if (key in base || key in override) {
-                dict[key] = ([base[key]] + [override[key]]).flatten()
-            }
-        }
-
-        def alreadyMergedKeys = ['environment', 'labels'] + pathMappingKeys + listKeys + listOrStringKeys
+        def alreadyMergedKeys = ['environment', 'labels'] + pathMappingKeys + listKeys
         def remainingKeys = ALLOWED_KEYS.toSet() - alreadyMergedKeys.toSet()
 
         remainingKeys.each { k ->
@@ -434,7 +428,7 @@ class ParsingUtils {
 
     static Collection splitLabel(String label) {
         if (label.contains('=')) {
-            return label.split('=')
+            return label.split('=', 2)
         } else {
             return [label, '']
         }
@@ -442,7 +436,7 @@ class ParsingUtils {
 
     static Collection splitPathMapping(String string) {
         if (string.contains(':')) {
-            def (host, container) = string.split(':')
+            def (host, container) = string.split(':', 2)
             return [container, host]
         } else {
             return [string, null]
@@ -451,7 +445,7 @@ class ParsingUtils {
 
     static Collection resolveEnvVar(String key, String val) {
         if (val != null) {
-            return [key, val]
+            return [key, expandVars(val)]
         } else if (getenv(key) != null) {
             return [key, getenv(key)]
         } else {

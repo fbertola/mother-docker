@@ -5,11 +5,13 @@ import com.spotify.docker.client.DockerClient
 import groovy.util.logging.Slf4j
 
 import static com.github.fbertola.motherdocker.utils.ParsingUtils.getServiceNameFromNet
+import static com.github.fbertola.motherdocker.utils.StringUtils.sanitizeStrings
 
 @Slf4j
 class MotherDockingProject {
 
     DockerClient client = null
+    Map createdContainers = [:]
     List<MotherDockingService> services = []
 
     public MotherDockingProject(client, parsedServices) {
@@ -20,6 +22,8 @@ class MotherDockingProject {
             analyzeVolumesFrom(parsedService)
             analyzeNet(parsedService)
 
+            parsedService = sanitizeStrings(parsedService)
+
             def name = parsedService['name']
 
             services << new MotherDockingService(name, client, parsedService)
@@ -29,21 +33,19 @@ class MotherDockingProject {
     }
 
     void start() {
-        services.each { s -> s.start() }
+        services.each { s ->
+            s.start(createdContainers)
+            createdContainers[s.name] = s.containerId
+        }
     }
 
     void stop() {
         services.reverse().each { s -> s.stop() }
     }
 
-    Map getPortMappings() {
+    Map getServicesInfo() {
         return services.inject([:]) { map, s ->
-            def portMappings = s.getPortMappings()
-
-            if (portMappings) {
-                map << portMappings
-            }
-
+            map[s.name] = s.getServiceInfo()
             return map
         } as Map
     }
@@ -87,7 +89,6 @@ class MotherDockingProject {
             parsedService['net'] = 'bridge'
         }
     }
-
 
     def serviceExistInProject(String name) {
         return (services.find { it.name.equals(name) } != null)
