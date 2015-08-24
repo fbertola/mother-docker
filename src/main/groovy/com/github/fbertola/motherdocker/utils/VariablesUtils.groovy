@@ -5,7 +5,7 @@ import com.sun.security.auth.module.UnixSystem
 import static java.lang.System.getProperty
 import static java.lang.System.getenv
 
-class PathUtils {
+class VariablesUtils {
 
     static def expandUser(String path) {
         if (!path.startsWith('~')) {

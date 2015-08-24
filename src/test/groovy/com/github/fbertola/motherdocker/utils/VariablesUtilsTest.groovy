@@ -3,11 +3,11 @@ package com.github.fbertola.motherdocker.utils
 import spock.lang.Requires
 import spock.lang.Specification
 
-import static PathUtils.expandUser
-import static PathUtils.expandVars
+import static VariablesUtils.expandUser
+import static VariablesUtils.expandVars
 import static java.lang.System.getenv
 
-class PathUtilsTest extends Specification {
+class VariablesUtilsTest extends Specification {
 
     def setup() {
         System.setProperty('user.home', '/home/antani')
