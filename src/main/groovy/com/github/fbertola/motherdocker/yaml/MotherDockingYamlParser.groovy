@@ -5,6 +5,7 @@ import com.github.fbertola.motherdocker.exceptions.ParserException
 import java.nio.file.FileSystems
 
 import static com.github.fbertola.motherdocker.utils.ParsingUtils.*
+import static com.github.fbertola.motherdocker.utils.StringUtils.sanitizeStringValues
 
 class MotherDockingYamlParser {
 
@@ -28,7 +29,11 @@ class MotherDockingYamlParser {
         serviceDictionary = resolveEnvironment(serviceDictionary as Map, workingDir)
         resolveExtends(serviceDictionary)
 
-        processContainerOptions(serviceDictionary, workingDir)
+        serviceDictionary = processContainerOptions(serviceDictionary, workingDir)
+        serviceDictionary = sanitizeStringValues(serviceDictionary as Map)
+        serviceDictionary = enforceListArgs(serviceDictionary as Map)
+
+        return serviceDictionary
     }
 
     private def resolveExtends(serviceDictionary) {

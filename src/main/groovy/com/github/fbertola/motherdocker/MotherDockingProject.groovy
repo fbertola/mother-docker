@@ -5,7 +5,6 @@ import com.spotify.docker.client.DockerClient
 import groovy.util.logging.Slf4j
 
 import static com.github.fbertola.motherdocker.utils.ParsingUtils.getServiceNameFromNet
-import static com.github.fbertola.motherdocker.utils.StringUtils.sanitizeStrings
 
 @Slf4j
 class MotherDockingProject {
@@ -21,8 +20,6 @@ class MotherDockingProject {
             analyzeLinks(parsedService)
             analyzeVolumesFrom(parsedService)
             analyzeNet(parsedService)
-
-            parsedService = sanitizeStrings(parsedService)
 
             def name = parsedService['name']
 

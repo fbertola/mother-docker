@@ -40,6 +40,7 @@ class MotherDocker {
 
             def loader = new MotherDockingYamlParser(workingDir, filename)
             serviceDict = loader.makeServiceDictionary(serviceName, serviceDict)
+
             validatePaths(serviceDict)
 
             serviceDictionaries << serviceDict

@@ -2,23 +2,23 @@ package com.github.fbertola.motherdocker.utils
 
 class StringUtils {
 
-    public static Map sanitizeStrings(Map map) {
+    public static Map sanitizeStringValues(Map map) {
         return map.inject([:]) { result, v ->
-            result[sanitizeStrings(v.key) as String] = sanitizeStrings(v.value)
+            result[v.key as String] = sanitizeStringValues(v.value)
             result
         } as Map
     }
 
-    public static List sanitizeStrings(Collection coll) {
-        return coll.collect { sanitizeStrings(it) } as List
+    public static List sanitizeStringValues(Collection coll) {
+        return coll.collect { sanitizeStringValues(it) } as List
     }
 
-    public static String sanitizeStrings(String str) {
+    public static String sanitizeStringValues(String str) {
         return str.replaceAll('\\r\\n|\\r|\\n', ' ').toString();
     }
 
     // Pass-through
-    public static def sanitizeStrings(obj) {
+    public static def sanitizeStringValues(obj) {
         obj
     }
 

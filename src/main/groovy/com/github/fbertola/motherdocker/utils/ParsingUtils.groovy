@@ -185,6 +185,23 @@ class ParsingUtils {
         }
     }
 
+    static Map enforceListArgs(Map dict) {
+        Map d = dict.clone()
+
+        ['dns',
+         'ports',
+         'expose',
+         'dns_search',
+         'externalLinks'
+        ].forEach({ s ->
+            if (s in d) {
+                d[s] = [d[s]].flatten()
+            }
+        })
+
+        return d
+    }
+
     static def mergeServiceDictionaries(base, override) {
         def dict = base.clone() as Map
 
