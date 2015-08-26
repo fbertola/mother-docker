@@ -37,9 +37,7 @@ new DefaultDockerClient("unix:///var/run/docker.sock").withCloseable { client ->
 
 #### Integration with test frameworks
 
-If you're using [Spock](https://github.com/spockframework/spock) you could use the provided `@WithDockerConfig` extension. As an example see [this](https://github.com/fbertola/mother-docker/blob/master/src/test/groovy/com/github/fbertola/motherdocker/MotherDockerTest.groovy).
-
-If you're using [Junit](https://github.com/junit-team/junit) you could use a simple [Rule](https://github.com/junit-team/junit/wiki/Rules), for example:
+If you're using [Spock](https://github.com/spockframework/spock) you could use the provided `@WithDockerConfig` extension (as an example see [this](https://github.com/fbertola/mother-docker/blob/master/src/test/groovy/com/github/fbertola/motherdocker/MotherDockerTest.groovy)) or, if you're using [Junit](https://github.com/junit-team/junit), you could use a simple [Rule](https://github.com/junit-team/junit/wiki/Rules), for example:
 
 ```java
 public class MotherDockingRule extends ExternalResource {
@@ -99,7 +97,7 @@ _MotherDocker_ adds some new useful extensions to the original _YAML_ syntax:
 
 #### Networking
 
-It is often advisable not to statically bind specific ports in your containers, either because this will prevents from running the same container twice (e.g. when container creation is a part of multiple integration tests) or because some service might already using it. In these cases, it is useful to let Docker assign an ephemeral port to all exposed ones; this is possible with the `publish_all` option.
+It is often advisable not to statically bind specific ports in your containers, either because this will prevents from running the same container twice (e.g. when container creation is a part of multiple integration tests) or because some service might already using it. In these cases, it is useful to let Docker assign an ephemeral port to all the exposed ones; this is possible with the `publish_all` option.
 
 For further documentation see [this link](https://docs.docker.com/articles/networking/#binding-ports).
 
