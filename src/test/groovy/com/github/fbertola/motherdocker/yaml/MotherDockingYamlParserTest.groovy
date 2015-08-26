@@ -35,7 +35,7 @@ class MotherDockingYamlParserTest extends Specification {
     private static def loadExpected(String filename) {
         def content = new File(filename).getText('UTF-8')
 
-        return Eval.me(content)
+        return Eval.me(content) as List
     }
 
     private static def serviceDictFromFile(String filename, String workingDir) {

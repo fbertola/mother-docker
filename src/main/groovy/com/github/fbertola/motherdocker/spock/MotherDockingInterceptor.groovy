@@ -45,17 +45,17 @@ class MotherDockingInterceptor implements IMethodInterceptor {
     }
 
     private static void createDynamicServicesInfoProperty(IMethodInvocation invocation, Map servicesInfo) {
-        def specMeta = getSpec( invocation ).metaClass
+        def specMeta = getSpec(invocation).metaClass
 
         specMeta.propertyMissing = { propertyName ->
-            if (propertyName.equals(SERVICES_INFO_PROPERTY_NAME)){
+            if (propertyName.equals(SERVICES_INFO_PROPERTY_NAME)) {
                 return servicesInfo
             }
         }
 
     }
 
-    private static Specification getSpec( IMethodInvocation invocation )    {
+    private static Specification getSpec(IMethodInvocation invocation) {
         invocation.target as Specification
     }
 

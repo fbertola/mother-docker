@@ -26,7 +26,6 @@ class MotherDockerTest extends Specification {
 
         assert info
         assert ports.size() == 1
-        Thread.sleep(60000)
 
         and: 'Postgres is reachable'
         assert isPostgresReachable(ports)
@@ -68,7 +67,7 @@ class MotherDockerTest extends Specification {
         PortBinding binding = portMappings['5432'][0]
         String host = binding.hostIp()
         String port = binding.hostPort()
-println "jdbc:postgresql://${host}:${port}/superduperuser"
+
         def sql = Sql.newInstance(
                 "jdbc:postgresql://${host}:${port}/superduperuser",
                 'superduperuser',
