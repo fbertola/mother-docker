@@ -24,8 +24,8 @@ new DefaultDockerClient("unix:///var/run/docker.sock").withCloseable { client ->
     // Starts the project
     project.start()
     
-    // Retrieves the network configuration
-    def mappings = project.getPortMappings()
+    // Retrieves the services info
+    def info = project.getSericesInfo()
     
     // Application logic...
     
@@ -49,8 +49,8 @@ public class MotherDockingRule extends ExternalResource {
         this.project = MotherDocker.buildProjectFromFile(filename, client)
     }
  
-    public Map<String, List<PortBinding>> getPortMappings() {
-        return project.getPortMappings();
+    public Map<String, ContainerInfo> getServicesInfo() {
+        return project.getServicesInfo();
     }
  
     @Override
@@ -81,14 +81,14 @@ If you're using _Maven_:
 <dependency>
     <groupId>com.github.fbertola</groupId>
     <artifactId>mother-docker</artifactId>
-    <version>1.0.0-Beta2</version>
+    <version>1.0.0-Beta3</version>
 </dependency>
 ```
 
 If you're using _Gradle_:
 
 ```groovy
-compile 'com.github.fbertola:mother-docker:1.0.0-Beta1'
+compile 'com.github.fbertola:mother-docker:1.0.0-Beta3'
 ```
 
 ## Docker-Compose extensions
