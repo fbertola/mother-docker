@@ -3,32 +3,32 @@ language: groovy
 jdk:
   - oraclejdk8
 
-env:
-  global:
-    - "HOST_IP=$(/sbin/ifconfig venet0:0 | grep 'inet addr' | awk -F: '{print $2}' | awk '{print $1}')"
-    - DOCKER_HOST=tcp://$HOST_IP:2375
-    - DOCKER_PORT_RANGE=2400:2500
-    - SLIRP_PORTS=$(seq 2375 2500)
-
-before_install:
-  - sudo sh -c "wget -qO- https://get.docker.io/gpg | apt-key add -"
-  - sudo sh -c "echo deb https://get.docker.com/ubuntu docker main > /etc/apt/sources.list.d/docker.list"
-  - echo exit 101 | sudo tee /usr/sbin/policy-rc.d
-  - sudo chmod +x /usr/sbin/policy-rc.d
-  - sudo mkdir -p /var/lib/docker
-
-install:
-  - sudo apt-get -y install apt-transport-https
-  - sudo apt-get update
-  - sudo apt-get -y install slirp lxc lxc-docker
-  - sudo sudo usermod -aG docker "$USER"
-  - git clone git://github.com/cptactionhank/sekexe
-
-before_script:
-  # - "sekexe/run 'mount -t tmpfs -o size=8g tmpfs /var/lib/docker && docker -d' &"
-  # - "while ! docker info &> /dev/null ; do sleep 1; done"
-  # - "docker pull busybox"
-  # - "docker pull postgres:9.4"
-
-script:
-  # - docker version
+#env:
+#  global:
+#    - "HOST_IP=$(/sbin/ifconfig venet0:0 | grep 'inet addr' | awk -F: '{print $2}' | awk '{print $1}')"
+#    - DOCKER_HOST=tcp://$HOST_IP:2375
+#    - DOCKER_PORT_RANGE=2400:2500
+#    - SLIRP_PORTS=$(seq 2375 2500)
+#
+#before_install:
+#  - sudo sh -c "wget -qO- https://get.docker.io/gpg | apt-key add -"
+#  - sudo sh -c "echo deb https://get.docker.com/ubuntu docker main > /etc/apt/sources.list.d/docker.list"
+#  - echo exit 101 | sudo tee /usr/sbin/policy-rc.d
+#  - sudo chmod +x /usr/sbin/policy-rc.d
+#  - sudo mkdir -p /var/lib/docker
+#
+#install:
+#  - sudo apt-get -y install apt-transport-https
+#  - sudo apt-get update
+#  - sudo apt-get -y install slirp lxc lxc-docker
+#  - sudo sudo usermod -aG docker "$USER"
+#  - git clone git://github.com/cptactionhank/sekexe
+#
+#before_script:
+#  - "sekexe/run 'mount -t tmpfs -o size=8g tmpfs /var/lib/docker && docker -d' &"
+#  - "while ! docker info &> /dev/null ; do sleep 1; done"
+#  - "docker pull busybox"
+#  - "docker pull postgres:9.4"
+#
+#script:
+#  - docker version
