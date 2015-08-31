@@ -70,7 +70,6 @@ class DockerUtils {
         try {
             def messageString = new String(buf, 'utf-8')
 
-            println(messageString)
             log.debug(messageString)
 
             return messageString.contains(message)

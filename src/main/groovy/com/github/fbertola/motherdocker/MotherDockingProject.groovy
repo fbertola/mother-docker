@@ -36,6 +36,16 @@ class MotherDockingProject {
         }
     }
 
+    void restart() {
+        services.each {s -> s.restart()}
+    }
+
+    void restart(serviceName) {
+        services.find { s ->
+            s.name.equals(serviceName)
+        }.restart()
+    }
+
     void stop() {
         services.reverse().each { s -> s.stop() }
     }

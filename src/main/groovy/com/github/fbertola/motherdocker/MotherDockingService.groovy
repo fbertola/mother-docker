@@ -61,7 +61,7 @@ class MotherDockingService {
         return containerId
     }
 
-    def start(Map otherContainers) {
+    void start(Map otherContainers) {
         log.info('Starting service \'{}\'', name)
 
         ensureImageExists()
@@ -75,7 +75,17 @@ class MotherDockingService {
         log.info('Done! Service \'{}\' successfully started', name)
     }
 
-    def stop() {
+    void restart() {
+        log.info('Restarting service \'{}\'', name)
+
+        client.restartContainer(containerId)
+
+        executeWaitStrategies()
+
+        log.info('Done! Service \'{}\' successfully restarted', name)
+    }
+
+    void stop() {
         log.info('Stopping service \'{}\'', name)
 
         stopAndRemoveContainer()
