@@ -73,6 +73,8 @@ public class MotherDockingRule extends ExternalResource {
 }
 ```
 
+When using Spring's testing annotation like `@RunWith(SpringJUnit4ClassRunner.class)` and `@SpringApplicationConfiguration` you will want use `@ClassRule` instead of `@Rule` to have to containers ready before the Spring's context start.
+
 ## Installation
 
 If you're using _Maven_:
