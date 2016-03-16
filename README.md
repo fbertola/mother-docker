@@ -44,9 +44,9 @@ public class MotherDockingRule extends ExternalResource {
  
     private MotherDockingProject project;  
  
-    public DockerContainerRule(String filename) {
+    public MotherDockingRule(String filename) {
         DockerClient client = new DefaultDockerClient("unix:///var/run/docker.sock");
-        this.project = MotherDocker.buildProjectFromFile(filename, client)
+        this.project = (MotherDockingProject) MotherDocker.buildProjectFromFile(filename, client);
     }
  
     public Map<String, ContainerInfo> getServicesInfo() {
@@ -72,6 +72,8 @@ public class MotherDockingRule extends ExternalResource {
     
 }
 ```
+
+When using Spring's testing annotation like `@RunWith(SpringJUnit4ClassRunner.class)` and `@SpringApplicationConfiguration` you will want use `@ClassRule` instead of `@Rule` to have to containers ready before the Spring's context start.
 
 ## Installation
 
